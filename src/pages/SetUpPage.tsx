@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styled from "styled-components";
 import useUserStore from "../store/userStore";
-import type { UserInfo } from "../types/user"; 
+import type { UserInfo } from "../types/user";
 
 const Container = styled.div`
   max-width: 400px;
@@ -29,21 +29,30 @@ const Input = styled.input`
   border: 1px solid #ccc;
 `;
 
+const Select = styled.select`
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: white;
+  cursor: pointer;
+`;
+
+
 const Button = styled.button`
   padding: 10px;
   font-size: 16px;
-  background-color: #3478f6;
+  background-color:rgb(100, 150, 250);
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
 
   &:hover {
-    background-color: #255edb;
+    background-color:rgb(85, 120, 250);
   }
 `;
 
-// 폼 입력 필드를 위한 별도의 타입 정의 (초기 상태에서 빈 문자열 허용)
 interface FormState {
   school: string;
   grade: string;
@@ -51,17 +60,26 @@ interface FormState {
   studentNum: string;
 }
 
+const SCHOOL_LIST = [
+    "설악중학교",
+    "속초중학교",
+    "해랑중학교",
+    "설온중학교",
+    "설악고등학교",
+    "속초고등학교",
+    "속초여자고등학교",
+];
+
 function SetupPage() {
   const { setUserInfo } = useUserStore();
-  // 폼 상태는 모든 필드를 문자열로 관리
   const [form, setForm] = useState<FormState>({
-    school: "",
+    school: "", 
     grade: "",
     classNum: "",
     studentNum: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
@@ -77,9 +95,9 @@ function SetupPage() {
 
       const userInfoToSend: UserInfo = {
         school: form.school,
-        grade: Number(form.grade),       
-        classNum: Number(form.classNum), 
-        studentNum: Number(form.studentNum), 
+        grade: Number(form.grade),
+        classNum: Number(form.classNum),
+        studentNum: Number(form.studentNum),
       };
 
       // 숫자로 변환했을 때 유효한 숫자인지 검사하기!
@@ -102,19 +120,25 @@ function SetupPage() {
 
   return (
     <Container>
-      <Title>🎓 사용자 정보 입력</Title>
-      <Input
+      <Title>사용자 정보 입력</Title>
+      <Select
         name="school"
-        placeholder="학교명"
         value={form.school}
         onChange={handleChange}
         required
-      />
+      >
+        <option value="" disabled>학교를 선택해주세요</option>
+        {SCHOOL_LIST.map((schoolName) => (
+          <option key={schoolName} value={schoolName}>
+            {schoolName}
+          </option>
+        ))}
+      </Select>
       <Input
         name="grade"
         type="number" // 숫자만 입력받도록 type 변경
         placeholder="학년"
-        value={form.grade} // form.grade는 string이므로 value에 직접 사용
+        value={form.grade}
         onChange={handleChange}
         required
       />
