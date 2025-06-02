@@ -1,9 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import Geubsik from './Geubsik'
+import SetupPage from './SetUpPage'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Geubsik />
+    <SetupPage />
   </StrictMode>,
 )

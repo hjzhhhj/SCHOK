@@ -1,55 +1,35 @@
-# React + TypeScript + Vite
+## 🌟 SCHOK - 속초 중·고등학생을 위한 통합 학교생활 정보 서비스
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**SCHOK**은 속초 지역 중·고등학생들을 위한 **급식, 시간표, 버스 정보를 한 번에 확인할 수 있는 웹 애플리케이션**입니다.  
+공공 데이터를 기반으로 한 맞춤형 플랫폼으로, 학생들이 자주 사용하는 정보를 간편하게 제공합니다.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 📌 주요 기능
 
-## Expanding the ESLint configuration
+🍱 **급식 정보 제공**  
+- 오늘의 급식 / 주간 급식 확인  
+- 학교 선택 시 자동 표시  
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+📚 **시간표 확인**  
+- 오늘의 시간표 / 주간 시간표 제공  
+- 학년·반 입력 시 자동 필터링  
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+🚌 **실시간 버스 도착 정보**  
+- 사용자의 위치 → 학교까지 소요 시간 계산  
+- 버스 도착 예정 시간 안내  
+- 학교 기준으로 자동 경로 설정  
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+🎯 **맞춤형 사용자 설정**  
+- 처음 한 번 학교, 학년, 반 정보 입력  
+- 로컬 저장소(LocalStorage)로 자동 저장  
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
-# SCHOK
+### 🛠️ 사용 기술
+
+- **Frontend**: JavaScript, HTML, CSS, React
+- **API 활용**:  
+  - 나이스 교육정보 API (급식, 시간표)  
+  - 카카오맵 또는 네이버 지도 API (버스 위치, 경로 계산)  
+  
