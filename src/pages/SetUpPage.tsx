@@ -61,19 +61,19 @@ interface FormState {
 }
 
 const SCHOOL_LIST = [
-    "설악중학교",
-    "속초중학교",
-    "해랑중학교",
-    "설온중학교",
-    "설악고등학교",
-    "속초고등학교",
-    "속초여자고등학교",
+  "설악중학교",
+  "속초중학교",
+  "해랑중학교",
+  "설온중학교",
+  "설악고등학교",
+  "속초고등학교",
+  "속초여자고등학교",
 ];
 
 function SetupPage() {
   const { setUserInfo } = useUserStore();
   const [form, setForm] = useState<FormState>({
-    school: "", 
+    school: "",
     grade: "",
     classNum: "",
     studentNum: "",
@@ -138,7 +138,7 @@ function SetupPage() {
         name="grade"
         type="number" // 숫자만 입력받도록 type 변경
         placeholder="학년"
-        value={form.grade}
+        value={form.grade} // form.grade는 string이므로 value에 직접 사용
         onChange={handleChange}
         required
       />
