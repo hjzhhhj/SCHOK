@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import useUserStore from "../store/userStore";
+import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap";
 
 interface MealData {
     DDISH_NM: string;
@@ -64,9 +65,25 @@ const Meal: React.FC = () => {
     const [meals, setMeals] = useState<MealData[]>([]);
     const [loading, setLoading] = useState(true);
     const [noData, setNoData] = useState(false);
+    const { userInfo } = useUserStore(); // Get user info from store
 
     useEffect(() => {
         const fetchMeals = async () => {
+            if (!userInfo || !userInfo.school) {
+                setNoData(true);
+                setLoading(false);
+                return;
+            }
+
+            const schoolInfo = SCHOOL_CODE_MAP[userInfo.school];
+
+            if (!schoolInfo) {
+                console.error("학교 정보를 찾을 수 없습니다.");
+                setNoData(true);
+                setLoading(false);
+                return;
+            }
+
             const serviceKey = import.meta.env.VITE_APP_NEIS_API_KEY;
             const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
 
@@ -75,8 +92,8 @@ const Meal: React.FC = () => {
                     params: {
                         KEY: serviceKey,
                         Type: "json",
-                        ATPT_OFCDC_SC_CODE: "K10",
-                        SD_SCHUL_CODE: "7801152",
+                        ATPT_OFCDC_SC_CODE: schoolInfo.atptOfcdcScCode, // Use dynamic code
+                        SD_SCHUL_CODE: schoolInfo.sdSchulCode, // Use dynamic code
                         MLSV_YMD: today,
                     },
                 });
@@ -97,7 +114,16 @@ const Meal: React.FC = () => {
         };
 
         fetchMeals();
-    }, []);
+    }, [userInfo]); // Depend on userInfo
+
+    if (!userInfo) {
+        return (
+            <Container>
+                <Title>오늘의 급식</Title>
+                <Message>사용자 정보를 먼저 입력해주세요.</Message>
+            </Container>
+        );
+    }
 
     return (
         <Container>
@@ -121,4 +147,4 @@ const Meal: React.FC = () => {
     );
 };
 
-export default Meal;
+export default Meal

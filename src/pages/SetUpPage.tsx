@@ -2,6 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import useUserStore from "../store/userStore";
 import type { UserInfo } from "../types/user";
+import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap";
 
 const Container = styled.div`
   max-width: 400px;
@@ -92,6 +93,10 @@ function SetupPage() {
       form.classNum !== "" &&
       form.studentNum !== ""
     ) {
+      if (!SCHOOL_CODE_MAP[form.school]) {
+        alert("선택한 학교에 대한 정보가 없습니다. 학교 코드를 추가해주세요.");
+        return;
+      }
 
       const userInfoToSend: UserInfo = {
         school: form.school,

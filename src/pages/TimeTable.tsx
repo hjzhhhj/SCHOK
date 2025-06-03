@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import useUserStore from "../store/userStore";
+import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap"; 
 
 interface TimetableEntry {
     PERIO: string;
@@ -60,9 +61,25 @@ const Timetable: React.FC = () => {
     const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [noData, setNoData] = useState(false);
+    const { userInfo } = useUserStore(); // Get user info from store
 
     useEffect(() => {
         const fetchTimetable = async () => {
+            if (!userInfo || !userInfo.school || !userInfo.grade || !userInfo.classNum) {
+                setNoData(true);
+                setLoading(false);
+                return;
+            }
+
+            const schoolInfo = SCHOOL_CODE_MAP[userInfo.school];
+
+            if (!schoolInfo) {
+                console.error("학교 정보를 찾을 수 없습니다.");
+                setNoData(true);
+                setLoading(false);
+                return;
+            }
+
             const serviceKey = import.meta.env.VITE_APP_NEIS_API_KEY;
             const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
 
@@ -71,10 +88,10 @@ const Timetable: React.FC = () => {
                     params: {
                         KEY: serviceKey,
                         Type: "json",
-                        ATPT_OFCDC_SC_CODE: "K10",
-                        SD_SCHUL_CODE: "7801152",
-                        GRADE: "1",
-                        CLASS_NM: "1",
+                        ATPT_OFCDC_SC_CODE: schoolInfo.atptOfcdcScCode, 
+                        SD_SCHUL_CODE: schoolInfo.sdSchulCode,
+                        GRADE: userInfo.grade, 
+                        CLASS_NM: userInfo.classNum, 
                         ALL_TI_YMD: today,
                     },
                 });
@@ -95,7 +112,16 @@ const Timetable: React.FC = () => {
         };
 
         fetchTimetable();
-    }, []);
+    }, [userInfo]); 
+
+    if (!userInfo) {
+        return (
+            <Container>
+                <Title>오늘의 시간표</Title>
+                <Message>사용자 정보를 먼저 입력해주세요.</Message>
+            </Container>
+        );
+    }
 
     return (
         <Container>
