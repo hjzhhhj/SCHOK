@@ -5,8 +5,8 @@ import type { UserInfo } from "../types/user";
 import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap"; 
 
 const Container = styled.div`
-    max-width: 400px;
-    margin: 60px auto;
+    width: 300px;
+    margin: 30px;
     padding: 24px;
     border-radius: 16px;
     background-color: #f0faff;

@@ -10,8 +10,8 @@ interface TimetableEntry {
 }
 
 const Container = styled.div`
-    max-width: 500px;
-    margin: 40px auto;
+    width: 400px;
+    margin: 30px;
     padding: 24px;
     border-radius: 16px;
     background-color: #f0faff;
