@@ -2,56 +2,77 @@ import { useState } from "react";
 import styled from "styled-components";
 import useUserStore from "../store/userStore";
 import type { UserInfo } from "../types/user";
-import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap";
+import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap"; 
 
 const Container = styled.div`
-  max-width: 400px;
-  margin: 60px auto;
-  padding: 24px;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  background-color: #fafafa;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 24px;
+    border-radius: 16px;
+    background-color: #f0faff;
+    box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 16px; 
+    font-family: "Pretendard", "Noto Sans KR", sans-serif;
 `;
 
 const Title = styled.h1`
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    text-align: center;
+    color: #007acc; 
 `;
 
 const Input = styled.input`
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px; 
+    border: 1px solid #a0d9ff; 
+    background-color: #ffffff; 
+    &:focus {
+        outline: none;
+        border-color: #007acc; 
+        box-shadow: 0 0 0 3px rgba(0, 128, 255, 0.2); 
+    }
 `;
 
 const Select = styled.select`
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background-color: white;
-  cursor: pointer;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px; 
+    border: 1px solid #a0d9ff; 
+    background-color: white;
+    cursor: pointer;
+    appearance: none; 
+    background-position: right 12px center;
+    background-size: 1em;
+    &:focus {
+        outline: none;
+        border-color: #007acc;
+        box-shadow: 0 0 0 3px rgba(0, 128, 255, 0.2);
+    }
 `;
 
-
 const Button = styled.button`
-  padding: 10px;
-  font-size: 16px;
-  background-color:rgb(100, 150, 250);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+    padding: 12px 20px;
+    font-size: 18px; 
+    background-color: #007acc; 
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease; 
 
-  &:hover {
-    background-color:rgb(85, 120, 250);
-  }
+    &:hover {
+        background-color: #005fa3; 
+        box-shadow: 0 4px 12px rgba(0, 128, 255, 0.2);
+    }
+
+    &:active {
+        background-color: #004a80;
+    }
 `;
 
 interface FormState {
@@ -141,15 +162,15 @@ function SetupPage() {
       </Select>
       <Input
         name="grade"
-        type="number" // 숫자만 입력받도록 type 변경
+        type="number" 
         placeholder="학년"
-        value={form.grade} // form.grade는 string이므로 value에 직접 사용
+        value={form.grade} 
         onChange={handleChange}
         required
       />
       <Input
         name="classNum"
-        type="number" // 숫자만 입력받도록 type 변경
+        type="number" 
         placeholder="반"
         value={form.classNum}
         onChange={handleChange}
@@ -157,7 +178,7 @@ function SetupPage() {
       />
       <Input
         name="studentNum"
-        type="number" // 숫자만 입력받도록 type 변경
+        type="number" 
         placeholder="번호"
         value={form.studentNum}
         onChange={handleChange}

@@ -6,6 +6,7 @@ import React from 'react';
 const Index: React.FC = () => {
     return (
         <div>
+            <SetupPage />
             <Timetable />
             <Meal />
         </div>
