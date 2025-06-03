@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import useUserStore from "../store/userStore";
 
 interface MealData {
     DDISH_NM: string;
@@ -76,7 +77,7 @@ const Meal: React.FC = () => {
                         Type: "json",
                         ATPT_OFCDC_SC_CODE: "K10",
                         SD_SCHUL_CODE: "7801152",
-                        MLSV_YMD: "20250604",
+                        MLSV_YMD: today,
                     },
                 });
 

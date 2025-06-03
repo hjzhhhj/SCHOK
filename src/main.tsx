@@ -1,11 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import SetupPage from './pages/SetUpPage'
-import Timetable from './pages/TimeTable'
-import Meal from './pages/Meal'
+import Index from './Index'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Meal />
+    <Index />
   </StrictMode>,
 )
