@@ -1,11 +1,62 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import styled from "styled-components";
 
 interface MealData {
     DDISH_NM: string;
     MLSV_YMD: string;
-    MMEAL_SC_NM: string; 
+    MMEAL_SC_NM: string;
 }
+
+const Container = styled.div`
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 24px;
+    border-radius: 16px;
+    background-color: #f0faff;
+    box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
+    font-family: "Pretendard", "Noto Sans KR", sans-serif;
+`;
+
+const Title = styled.h2`
+    text-align: center;
+    font-size: 24px;
+    color: #007acc;
+    margin-bottom: 20px;
+`;
+
+const List = styled.ul`
+    list-style: none;
+    padding: 0;
+`;
+
+const ListItem = styled.li`
+    background-color: #ffffff;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 5px solid #009fe3;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.6;
+    transition: background 0.2s;
+
+    &:hover {
+        background-color: #e6f7ff;
+    }
+`;
+
+const MealType = styled.div`
+    font-weight: bold;
+    color: #007acc;
+    margin-bottom: 6px;
+`;
+
+const Message = styled.p`
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+    margin-top: 24px;
+`;
 
 const Meal: React.FC = () => {
     const [meals, setMeals] = useState<MealData[]>([]);
@@ -47,23 +98,24 @@ const Meal: React.FC = () => {
     }, []);
 
     return (
-        <div>
-            <h2>오늘의 급식</h2>
+        <Container>
+            <Title>오늘의 급식</Title>
+
             {loading ? (
-                <p>급식 정보를 불러오는 중...</p>
+                <Message>급식 정보를 불러오는 중...</Message>
             ) : noData ? (
-                <p>오늘은 급식 정보가 없어요.</p>
+                <Message>오늘은 급식 정보가 없어요.</Message>
             ) : (
-                <ul>
+                <List>
                     {meals.map((meal, index) => (
-                        <li key={index}>
-                            <strong>{meal.MMEAL_SC_NM}</strong>:<br />
+                        <ListItem key={index}>
+                            <MealType>{meal.MMEAL_SC_NM}</MealType>
                             {meal.DDISH_NM.replace(/<br\/>/g, ", ")}
-                        </li>
+                        </ListItem>
                     ))}
-                </ul>
+                </List>
             )}
-        </div>
+        </Container>
     );
 };
 
