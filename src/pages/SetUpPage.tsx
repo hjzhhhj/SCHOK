@@ -46,6 +46,8 @@ const Select = styled.select`
     background-color: white;
     cursor: pointer;
     appearance: none; 
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20fill%3D%22%23007acc%22%20d%3D%22M128%20160l64-64H64z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 1em;
     &:focus {
@@ -92,6 +94,8 @@ const SCHOOL_LIST = [
     "속초여자고등학교",
 ];
 
+const GRADE_LIST = [1, 2, 3];
+
 function SetupPage() {
   const { setUserInfo } = useUserStore();
   const [form, setForm] = useState<FormState>({
@@ -107,7 +111,6 @@ function SetupPage() {
   };
 
   const handleSubmit = () => {
-    // 폼 유효성 검사
     if (
       form.school &&
       form.grade !== "" &&
@@ -126,7 +129,6 @@ function SetupPage() {
         studentNum: Number(form.studentNum),
       };
 
-      // 숫자로 변환했을 때 유효한 숫자인지 검사하기!
       if (
         isNaN(userInfoToSend.grade) ||
         isNaN(userInfoToSend.classNum) ||
@@ -138,7 +140,6 @@ function SetupPage() {
 
       setUserInfo(userInfoToSend);
       alert("사용자 정보가 저장되었습니다!");
-      // 여기에 다음 페이지로 이동하는 로직 추가해야댐
     } else {
       alert("모든 항목을 입력해주세요.");
     }
@@ -160,14 +161,19 @@ function SetupPage() {
           </option>
         ))}
       </Select>
-      <Input
+      <Select
         name="grade"
-        type="number" 
-        placeholder="학년"
-        value={form.grade} 
+        value={form.grade}
         onChange={handleChange}
         required
-      />
+      >
+        <option value="" disabled>학년을 선택해주세요</option>
+        {GRADE_LIST.map((gradeNum) => (
+          <option key={gradeNum} value={gradeNum}>
+            {gradeNum}학년
+          </option>
+        ))}
+      </Select>
       <Input
         name="classNum"
         type="number" 
