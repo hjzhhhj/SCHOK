@@ -37,6 +37,7 @@ const ListItem = styled.li`
     border-left: 5px solid #009fe3;
     border-radius: 8px;
     font-size: 15px;
+    white-space: pre-line;
     line-height: 1.6;
     transition: background 0.2s;
 
@@ -110,7 +111,7 @@ const Meal: React.FC = () => {
                     {meals.map((meal, index) => (
                         <ListItem key={index}>
                             <MealType>{meal.MMEAL_SC_NM}</MealType>
-                            {meal.DDISH_NM.replace(/<br\/>/g, ", ")}
+                            {meal.DDISH_NM.replace(/<br\/>/g, "\n")}
                         </ListItem>
                     ))}
                 </List>
