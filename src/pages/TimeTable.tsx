@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import useUserStore from "../store/userStore";
-import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap"; 
+import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap";
 
 interface TimetableEntry {
     PERIO: string;
@@ -61,7 +61,7 @@ const Timetable: React.FC = () => {
     const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [noData, setNoData] = useState(false);
-    const { userInfo } = useUserStore(); // Get user info from store
+    const { userInfo } = useUserStore();
 
     useEffect(() => {
         const fetchTimetable = async () => {
@@ -81,28 +81,58 @@ const Timetable: React.FC = () => {
             }
 
             const serviceKey = import.meta.env.VITE_APP_NEIS_API_KEY;
-            const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
+            
+            // ! 날짜 처리 수정: 한국 시간으로 오늘 날짜를 "YYYYMMDD" 형식으로 만듭니다.
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const formattedDate = `${year}${month}${day}`;
 
             try {
                 const response = await axios.get("https://open.neis.go.kr/hub/hisTimetable", {
                     params: {
                         KEY: serviceKey,
                         Type: "json",
-                        ATPT_OFCDC_SC_CODE: schoolInfo.atptOfcdcScCode, 
+                        ATPT_OFCDC_SC_CODE: schoolInfo.atptOfcdcScCode,
                         SD_SCHUL_CODE: schoolInfo.sdSchulCode,
-                        GRADE: userInfo.grade, 
-                        CLASS_NM: userInfo.classNum, 
-                        ALL_TI_YMD: today,
+                        GRADE: userInfo.grade,
+                        CLASS_NM: userInfo.classNum,
+                        // ALL_TI_YMD는 일일 시간표, MLSV_YMD는 급식 날짜. 시간표는 ALL_TI_YMD를 써야 합니다.
+                        ALL_TI_YMD: formattedDate, // ! 여기에 수정된 날짜 변수 사용
                     },
                 });
 
-                const result = response.data.hisTimetable;
+                console.log("--- 시간표 API 응답 전체 데이터 ---", response.data);
 
-                if (!result || result.length < 2 || !result[1].row || result[1].row.length === 0) {
-                    setNoData(true);
-                } else {
-                    setTimetable(result[1].row);
+                let extractedTimetable: TimetableEntry[] = [];
+                let dataFound = false;
+
+                // hisTimetable 키가 있고 배열인지 확인
+                if (response.data && Array.isArray(response.data.hisTimetable)) {
+                    // hisTimetable 배열 내에서 'row' 키를 가진 객체를 찾습니다.
+                    // 스크린샷 상으로는 hisTimetable 배열의 두 번째 요소에 row가 있을 가능성이 있습니다.
+                    const hisTimetableRoot = response.data.hisTimetable; 
+
+                    // hisTimetable 배열의 각 요소를 순회하며 'row' 키를 가진 객체를 찾습니다.
+                    for (const item of hisTimetableRoot) {
+                        if (item && Array.isArray(item.row) && item.row.length > 0) {
+                            extractedTimetable = item.row;
+                            dataFound = true;
+                            break; // 첫 번째 'row' 데이터를 찾으면 루프 종료
+                        }
+                    }
                 }
+
+                if (dataFound) {
+                    console.log("가져온 시간표 데이터:", extractedTimetable);
+                    setTimetable(extractedTimetable);
+                    setNoData(false);
+                } else {
+                    console.log("시간표 데이터 없음 (API 응답에서 row를 찾지 못함 또는 데이터가 비어있음).");
+                    setNoData(true);
+                }
+
             } catch (error) {
                 console.error("시간표를 불러오는 데 실패했어요:", error);
                 setNoData(true);
@@ -112,7 +142,7 @@ const Timetable: React.FC = () => {
         };
 
         fetchTimetable();
-    }, [userInfo]); 
+    }, [userInfo]);
 
     if (!userInfo) {
         return (

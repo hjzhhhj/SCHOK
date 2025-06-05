@@ -65,7 +65,7 @@ const Meal: React.FC = () => {
     const [meals, setMeals] = useState<MealData[]>([]);
     const [loading, setLoading] = useState(true);
     const [noData, setNoData] = useState(false);
-    const { userInfo } = useUserStore(); // Get user info from store
+    const { userInfo } = useUserStore();
 
     useEffect(() => {
         const fetchMeals = async () => {
@@ -85,26 +85,53 @@ const Meal: React.FC = () => {
             }
 
             const serviceKey = import.meta.env.VITE_APP_NEIS_API_KEY;
-            const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
+            
+            // ! 날짜 처리 수정: 한국 시간으로 오늘 날짜를 "YYYYMMDD" 형식으로 만듭니다.
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const formattedDate = `${year}${month}${day}`;
 
             try {
                 const response = await axios.get("https://open.neis.go.kr/hub/mealServiceDietInfo", {
                     params: {
                         KEY: serviceKey,
                         Type: "json",
-                        ATPT_OFCDC_SC_CODE: schoolInfo.atptOfcdcScCode, // Use dynamic code
-                        SD_SCHUL_CODE: schoolInfo.sdSchulCode, // Use dynamic code
-                        MLSV_YMD: today,
+                        ATPT_OFCDC_SC_CODE: schoolInfo.atptOfcdcScCode,
+                        SD_SCHUL_CODE: schoolInfo.sdSchulCode,
+                        MLSV_YMD: formattedDate, // ! 여기에 수정된 날짜 변수 사용
                     },
                 });
 
-                const result = response.data.mealServiceDietInfo;
+                console.log("--- 급식 API 응답 전체 데이터 ---", response.data);
 
-                if (!result || result.length < 2 || !result[1].row || result[1].row.length === 0) {
-                    setNoData(true);
-                } else {
-                    setMeals(result[1].row);
+                let extractedMeals: MealData[] = [];
+                let dataFound = false;
+
+                // mealServiceDietInfo 키가 있고 배열인지 확인
+                if (response.data && Array.isArray(response.data.mealServiceDietInfo)) {
+                    const mealServiceInfoRoot = response.data.mealServiceDietInfo;
+
+                    // mealServiceInfo 배열 내에서 'row' 키를 가진 객체를 찾습니다.
+                    for (const item of mealServiceInfoRoot) {
+                        if (item && Array.isArray(item.row) && item.row.length > 0) {
+                            extractedMeals = item.row;
+                            dataFound = true;
+                            break; // 첫 번째 'row' 데이터를 찾으면 루프 종료
+                        }
+                    }
                 }
+
+                if (dataFound) {
+                    console.log("가져온 급식 데이터:", extractedMeals);
+                    setMeals(extractedMeals);
+                    setNoData(false);
+                } else {
+                    console.log("급식 데이터 없음 (API 응답에서 row를 찾지 못함 또는 데이터가 비어있음).");
+                    setNoData(true);
+                }
+
             } catch (error) {
                 console.error("급식 정보를 불러오는 데 실패했어요:", error);
                 setNoData(true);
@@ -114,7 +141,7 @@ const Meal: React.FC = () => {
         };
 
         fetchMeals();
-    }, [userInfo]); // Depend on userInfo
+    }, [userInfo]);
 
     if (!userInfo) {
         return (
@@ -132,7 +159,7 @@ const Meal: React.FC = () => {
             {loading ? (
                 <Message>급식 정보를 불러오는 중...</Message>
             ) : noData ? (
-                <Message>오늘은 급식 정보가 없어요.</Message>
+                    <Message>오늘은 급식 정보가 없어요.</Message>
             ) : (
                 <List>
                     {meals.map((meal, index) => (
@@ -147,4 +174,4 @@ const Meal: React.FC = () => {
     );
 };
 
-export default Meal
+export default Meal;
