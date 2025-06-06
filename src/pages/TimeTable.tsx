@@ -26,6 +26,14 @@ const Title = styled.h2`
     margin-bottom: 20px;
 `;
 
+const DateDisplay = styled.div`
+    text-align: center;
+    font-size: 18px;
+    color: #007acc;
+    margin-bottom: 15px;
+    font-weight: bold;
+`;
+
 const List = styled.ul`
     list-style: none;
     padding: 0;
@@ -57,11 +65,52 @@ const Message = styled.p`
     margin-top: 24px;
 `;
 
+const ButtonContainer = styled.div`
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+`;
+
+const NavButton = styled.button`
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #007acc;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #005fa3;
+    }
+
+    &:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+`;
+
 const Timetable: React.FC = () => {
     const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [noData, setNoData] = useState(false);
+    const [currentDate, setCurrentDate] = useState(new Date());
     const { userInfo } = useUserStore();
+
+    const formatDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}${month}${day}`;
+    };
+
+    const displayDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString();
+        const day = date.getDate().toString();
+        return `${year}년 ${month}월 ${day}일`;
+    };
 
     useEffect(() => {
         const fetchTimetable = async () => {
@@ -81,13 +130,7 @@ const Timetable: React.FC = () => {
             }
 
             const serviceKey = import.meta.env.VITE_APP_NEIS_API_KEY;
-            
-            // ! 날짜 처리 수정: 한국 시간으로 오늘 날짜를 "YYYYMMDD" 형식으로 만듭니다.
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = (today.getMonth() + 1).toString().padStart(2, '0');
-            const day = today.getDate().toString().padStart(2, '0');
-            const formattedDate = `${year}${month}${day}`;
+            const formattedDate = formatDate(currentDate);
 
             try {
                 const response = await axios.get("https://open.neis.go.kr/hub/hisTimetable", {
@@ -98,8 +141,7 @@ const Timetable: React.FC = () => {
                         SD_SCHUL_CODE: schoolInfo.sdSchulCode,
                         GRADE: userInfo.grade,
                         CLASS_NM: userInfo.classNum,
-                        // ALL_TI_YMD는 일일 시간표, MLSV_YMD는 급식 날짜. 시간표는 ALL_TI_YMD를 써야 합니다.
-                        ALL_TI_YMD: formattedDate, // ! 여기에 수정된 날짜 변수 사용
+                        ALL_TI_YMD: formattedDate,
                     },
                 });
 
@@ -108,18 +150,14 @@ const Timetable: React.FC = () => {
                 let extractedTimetable: TimetableEntry[] = [];
                 let dataFound = false;
 
-                // hisTimetable 키가 있고 배열인지 확인
                 if (response.data && Array.isArray(response.data.hisTimetable)) {
-                    // hisTimetable 배열 내에서 'row' 키를 가진 객체를 찾습니다.
-                    // 스크린샷 상으로는 hisTimetable 배열의 두 번째 요소에 row가 있을 가능성이 있습니다.
-                    const hisTimetableRoot = response.data.hisTimetable; 
+                    const hisTimetableRoot = response.data.hisTimetable;
 
-                    // hisTimetable 배열의 각 요소를 순회하며 'row' 키를 가진 객체를 찾습니다.
                     for (const item of hisTimetableRoot) {
                         if (item && Array.isArray(item.row) && item.row.length > 0) {
                             extractedTimetable = item.row;
                             dataFound = true;
-                            break; // 첫 번째 'row' 데이터를 찾으면 루프 종료
+                            break;
                         }
                     }
                 }
@@ -142,7 +180,19 @@ const Timetable: React.FC = () => {
         };
 
         fetchTimetable();
-    }, [userInfo]);
+    }, [userInfo, currentDate]);
+
+    const handlePreviousDay = () => {
+        const newDate = new Date(currentDate);
+        newDate.setDate(newDate.getDate() - 1);
+        setCurrentDate(newDate);
+    };
+
+    const handleNextDay = () => {
+        const newDate = new Date(currentDate);
+        newDate.setDate(newDate.getDate() + 1);
+        setCurrentDate(newDate);
+    };
 
     if (!userInfo) {
         return (
@@ -156,11 +206,12 @@ const Timetable: React.FC = () => {
     return (
         <Container>
             <Title>오늘의 시간표</Title>
+            <DateDisplay>{displayDate(currentDate)}</DateDisplay>
 
             {loading ? (
                 <Message>시간표 불러오는 중...</Message>
             ) : noData ? (
-                <Message>오늘은 등록된 시간표가 없어요.</Message>
+                <Message>선택한 날짜에는 등록된 시간표가 없어요.</Message>
             ) : (
                 <List>
                     {timetable.map((entry, index) => (
@@ -170,6 +221,10 @@ const Timetable: React.FC = () => {
                     ))}
                 </List>
             )}
+            <ButtonContainer>
+                <NavButton onClick={handlePreviousDay}>{"< 이전 날짜"}</NavButton>
+                <NavButton onClick={handleNextDay}>{"다음 날짜 >"}</NavButton>
+            </ButtonContainer>
         </Container>
     );
 };
