@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import useUserStore from "../store/userStore";
-import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap"; 
+import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap";
 
 interface TimetableEntry {
     PERIO: string;
@@ -24,6 +24,14 @@ const Title = styled.h2`
     font-size: 24px;
     color: #007acc;
     margin-bottom: 20px;
+`;
+
+const DateDisplay = styled.div`
+    text-align: center;
+    font-size: 18px;
+    color: #007acc;
+    margin-bottom: 15px;
+    font-weight: bold;
 `;
 
 const List = styled.ul`
@@ -57,11 +65,52 @@ const Message = styled.p`
     margin-top: 24px;
 `;
 
+const ButtonContainer = styled.div`
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+`;
+
+const NavButton = styled.button`
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #007acc;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #005fa3;
+    }
+
+    &:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+`;
+
 const Timetable: React.FC = () => {
     const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [noData, setNoData] = useState(false);
-    const { userInfo } = useUserStore(); // Get user info from store
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const { userInfo } = useUserStore();
+
+    const formatDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}${month}${day}`;
+    };
+
+    const displayDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString();
+        const day = date.getDate().toString();
+        return `${year}년 ${month}월 ${day}일`;
+    };
 
     useEffect(() => {
         const fetchTimetable = async () => {
@@ -81,28 +130,47 @@ const Timetable: React.FC = () => {
             }
 
             const serviceKey = import.meta.env.VITE_APP_NEIS_API_KEY;
-            const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
+            const formattedDate = formatDate(currentDate);
 
             try {
                 const response = await axios.get("https://open.neis.go.kr/hub/hisTimetable", {
                     params: {
                         KEY: serviceKey,
                         Type: "json",
-                        ATPT_OFCDC_SC_CODE: schoolInfo.atptOfcdcScCode, 
+                        ATPT_OFCDC_SC_CODE: schoolInfo.atptOfcdcScCode,
                         SD_SCHUL_CODE: schoolInfo.sdSchulCode,
-                        GRADE: userInfo.grade, 
-                        CLASS_NM: userInfo.classNum, 
-                        ALL_TI_YMD: today,
+                        GRADE: userInfo.grade,
+                        CLASS_NM: userInfo.classNum,
+                        ALL_TI_YMD: formattedDate,
                     },
                 });
 
-                const result = response.data.hisTimetable;
+                console.log("--- 시간표 API 응답 전체 데이터 ---", response.data);
 
-                if (!result || result.length < 2 || !result[1].row || result[1].row.length === 0) {
-                    setNoData(true);
-                } else {
-                    setTimetable(result[1].row);
+                let extractedTimetable: TimetableEntry[] = [];
+                let dataFound = false;
+
+                if (response.data && Array.isArray(response.data.hisTimetable)) {
+                    const hisTimetableRoot = response.data.hisTimetable;
+
+                    for (const item of hisTimetableRoot) {
+                        if (item && Array.isArray(item.row) && item.row.length > 0) {
+                            extractedTimetable = item.row;
+                            dataFound = true;
+                            break;
+                        }
+                    }
                 }
+
+                if (dataFound) {
+                    console.log("가져온 시간표 데이터:", extractedTimetable);
+                    setTimetable(extractedTimetable);
+                    setNoData(false);
+                } else {
+                    console.log("시간표 데이터 없음 (API 응답에서 row를 찾지 못함 또는 데이터가 비어있음).");
+                    setNoData(true);
+                }
+
             } catch (error) {
                 console.error("시간표를 불러오는 데 실패했어요:", error);
                 setNoData(true);
@@ -112,7 +180,19 @@ const Timetable: React.FC = () => {
         };
 
         fetchTimetable();
-    }, [userInfo]); 
+    }, [userInfo, currentDate]);
+
+    const handlePreviousDay = () => {
+        const newDate = new Date(currentDate);
+        newDate.setDate(newDate.getDate() - 1);
+        setCurrentDate(newDate);
+    };
+
+    const handleNextDay = () => {
+        const newDate = new Date(currentDate);
+        newDate.setDate(newDate.getDate() + 1);
+        setCurrentDate(newDate);
+    };
 
     if (!userInfo) {
         return (
@@ -126,11 +206,12 @@ const Timetable: React.FC = () => {
     return (
         <Container>
             <Title>오늘의 시간표</Title>
+            <DateDisplay>{displayDate(currentDate)}</DateDisplay>
 
             {loading ? (
                 <Message>시간표 불러오는 중...</Message>
             ) : noData ? (
-                <Message>오늘은 등록된 시간표가 없어요.</Message>
+                <Message>선택한 날짜에는 등록된 시간표가 없어요.</Message>
             ) : (
                 <List>
                     {timetable.map((entry, index) => (
@@ -140,6 +221,10 @@ const Timetable: React.FC = () => {
                     ))}
                 </List>
             )}
+            <ButtonContainer>
+                <NavButton onClick={handlePreviousDay}>{"< 이전 날짜"}</NavButton>
+                <NavButton onClick={handleNextDay}>{"다음 날짜 >"}</NavButton>
+            </ButtonContainer>
         </Container>
     );
 };
