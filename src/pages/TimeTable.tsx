@@ -132,8 +132,23 @@ const Timetable: React.FC = () => {
             const serviceKey = import.meta.env.VITE_APP_NEIS_API_KEY;
             const formattedDate = formatDate(currentDate);
 
+            let apiUrl = "";
+
+            if (schoolInfo.schoolType === "고등학교") {
+                apiUrl = "https://open.neis.go.kr/hub/hisTimetable";
+            } else if (schoolInfo.schoolType === "중학교") {
+                apiUrl = "https://open.neis.go.kr/hub/misTimetable";
+            } else if (schoolInfo.schoolType === "초등학교") {
+                apiUrl = "https://open.neis.go.kr/hub/elsTimetable";
+            } else {
+                console.error("알 수 없는 학교 종류입니다.");
+                setNoData(true);
+                setLoading(false);
+                return;
+            }
+
             try {
-                const response = await axios.get("https://open.neis.go.kr/hub/hisTimetable", {
+                const response = await axios.get(apiUrl, {
                     params: {
                         KEY: serviceKey,
                         Type: "json",
@@ -150,10 +165,13 @@ const Timetable: React.FC = () => {
                 let extractedTimetable: TimetableEntry[] = [];
                 let dataFound = false;
 
-                if (response.data && Array.isArray(response.data.hisTimetable)) {
-                    const hisTimetableRoot = response.data.hisTimetable;
+                // API 응답의 루트 키를 동적으로 접근
+                // 예: hisTimetable, misTimetable, elsTimetable
+                const rootKey = apiUrl.split('/').pop()!; // URL의 마지막 부분 (예: hisTimetable)
+                if (response.data && Array.isArray(response.data[rootKey])) {
+                    const timetableRoot = response.data[rootKey];
 
-                    for (const item of hisTimetableRoot) {
+                    for (const item of timetableRoot) {
                         if (item && Array.isArray(item.row) && item.row.length > 0) {
                             extractedTimetable = item.row;
                             dataFound = true;
