@@ -3,4 +3,6 @@ export interface UserInfo {
   grade: number;
   classNum: number; 
   studentNum: number; 
+  schoolLatitude: number; 
+  schoolLongitude: number; 
 }

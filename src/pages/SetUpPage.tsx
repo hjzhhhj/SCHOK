@@ -99,7 +99,7 @@ const GRADE_LIST = [1, 2, 3];
 function SetupPage() {
   const { setUserInfo } = useUserStore();
   const [form, setForm] = useState<FormState>({
-    school: "", 
+    school: "",
     grade: "",
     classNum: "",
     studentNum: "",
@@ -117,7 +117,8 @@ function SetupPage() {
       form.classNum !== "" &&
       form.studentNum !== ""
     ) {
-      if (!SCHOOL_CODE_MAP[form.school]) {
+      const schoolInfo = SCHOOL_CODE_MAP[form.school];
+      if (!schoolInfo) {
         alert("선택한 학교에 대한 정보가 없습니다. 학교 코드를 추가해주세요.");
         return;
       }
@@ -127,6 +128,8 @@ function SetupPage() {
         grade: Number(form.grade),
         classNum: Number(form.classNum),
         studentNum: Number(form.studentNum),
+        schoolLatitude: schoolInfo.schoolLatitude, // 학교 위도 추가
+        schoolLongitude: schoolInfo.schoolLongitude, // 학교 경도 추가
       };
 
       if (
@@ -176,7 +179,7 @@ function SetupPage() {
       </Select>
       <Input
         name="classNum"
-        type="number" 
+        type="number"
         placeholder="반"
         value={form.classNum}
         onChange={handleChange}
@@ -184,7 +187,7 @@ function SetupPage() {
       />
       <Input
         name="studentNum"
-        type="number" 
+        type="number"
         placeholder="번호"
         value={form.studentNum}
         onChange={handleChange}
