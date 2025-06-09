@@ -128,8 +128,8 @@ function SetupPage() {
         grade: Number(form.grade),
         classNum: Number(form.classNum),
         studentNum: Number(form.studentNum),
-        schoolLatitude: schoolInfo.schoolLatitude, // 학교 위도 추가
-        schoolLongitude: schoolInfo.schoolLongitude, // 학교 경도 추가
+        schoolLatitude: schoolInfo.schoolLatitude, 
+        schoolLongitude: schoolInfo.schoolLongitude, 
       };
 
       if (
