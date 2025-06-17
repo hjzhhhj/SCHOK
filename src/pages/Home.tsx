@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import useUserStore from '../store/userStore';
-import MapDisplay from '../components/MapDisplay'; // MapDisplay 임포트
+import MapDisplay from '../components/MapDisplay';
 
 const Container = styled.div`
-    width: 400px;
-    margin: 30px;
+    width: 500px;
     padding: 24px;
+    margin: 0px;
     border-radius: 16px;
-    background-color: #f0faff;
+    background-color: rgba(255, 255, 255, 0.95);
     box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
-    font-family: "Pretendard", "Noto Sans KR", sans-serif;
+    font-family: "Pretendard";
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -81,10 +81,9 @@ const Home: React.FC = () => {
     const [routeInfo, setRouteInfo] = useState<{ duration: number; distance: number; } | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // 지도에 표시할 좌표 상태 추가
-    const [startCoords, setStartCoords] = useState<{ x: number; y: number } | null>(null); // 출발지 (경도, 위도)
-    const [endCoords, setEndCoords] = useState<{ x: number; y: number } | null>(null);   // 도착지 (경도, 위도)
-    const [routePaths, setRoutePaths] = useState<{ x: number; y: number }[]>([]); // 경로를 그릴 좌표 배열
+    const [startCoords, setStartCoords] = useState<{ x: number; y: number } | null>(null);
+    const [endCoords, setEndCoords] = useState<{ x: number; y: number } | null>(null);
+    const [routePaths, setRoutePaths] = useState<{ x: number; y: number }[]>([]);
 
     const KAKAO_REST_API_KEY = import.meta.env.VITE_APP_KAKAO_REST_API_KEY;
 
@@ -105,13 +104,12 @@ const Home: React.FC = () => {
         setLoading(true);
         setError(null);
         setRouteInfo(null);
-        setStartCoords(null); // 새로운 검색 전에 초기화
-        setEndCoords(null);   // 새로운 검색 전에 초기화
-        setRoutePaths([]);    // 새로운 검색 전에 초기화
+        setStartCoords(null);
+        setEndCoords(null);
+        setRoutePaths([]);
 
 
         try {
-            // 1. 출발지 주소를 위도/경도로 변환 (지오코딩)
             const geoResponse = await axios.get(
                 `https://dapi.kakao.com/v2/local/search/address.json?query=${startLocation}`,
                 {
@@ -128,23 +126,22 @@ const Home: React.FC = () => {
             }
 
             const startCoordData = {
-                x: parseFloat(geoResponse.data.documents[0].x), // 경도 (number로 변환)
-                y: parseFloat(geoResponse.data.documents[0].y), // 위도 (number로 변환)
+                x: parseFloat(geoResponse.data.documents[0].x),
+                y: parseFloat(geoResponse.data.documents[0].y),
             };
-            setStartCoords(startCoordData); // 출발지 좌표 저장
-            setEndCoords({ x: userInfo.schoolLongitude, y: userInfo.schoolLatitude }); // 도착지 좌표 저장
+            setStartCoords(startCoordData);
+            setEndCoords({ x: userInfo.schoolLongitude, y: userInfo.schoolLatitude });
 
             console.log("출발지 좌표 (경도, 위도):", startCoordData.x, startCoordData.y);
 
 
-            // 2. 길찾기 API 호출 (대중교통)
             const routeResponse = await axios.get(
-                'https://apis-navi.kakaomobility.com/v1/directions',
+                'https://apis-navi.kakao.com/v1/directions', // Corrected Kakao Mobility API endpoint
                 {
                     params: {
                         origin: `${startCoordData.x},${startCoordData.y}`,
                         destination: `${userInfo.schoolLongitude},${userInfo.schoolLatitude}`,
-                        priority: 'RECOMMEND', // 추천 경로
+                        priority: 'RECOMMEND',
                     },
                     headers: { Authorization: `KakaoAK ${KAKAO_REST_API_KEY}` },
                 }
@@ -160,17 +157,8 @@ const Home: React.FC = () => {
 
                 const extractedPaths: { x: number; y: number }[] = [];
 
-                // ✨ routes[0].sections 배열을 확인하고 순회
                 if (route.sections && Array.isArray(route.sections)) {
                     route.sections.forEach((section: any) => {
-                        // sections 내부의 roads (또는 steps)를 찾아 vertexes 추출
-                        // 대중교통 API가 'sections'를 반환하는 경우, 그 안의 상세 구조를 정확히 확인해야 합니다.
-                        // 보통 section 내부에 'guides'나 'roads'가 있을 수 있습니다.
-                        // 현재 응답에 sections만 있고 legs가 없다면, sections의 하위 구조를 확인해야 합니다.
-                        // 개발자 도구 Network 탭에서 sections[0] 내부의 정확한 구조를 봐야 합니다.
-
-                        // 임시로, sections[0] 아래에 바로 'roads'나 'vertexes'가 있다고 가정합니다.
-                        // 이 부분은 실제 API 응답 구조를 보고 맞춰야 합니다!
                         if (section.roads && Array.isArray(section.roads)) {
                             section.roads.forEach((road: any) => {
                                 if (road.vertexes && Array.isArray(road.vertexes)) {
@@ -183,11 +171,8 @@ const Home: React.FC = () => {
                                 }
                             });
                         }
-                        // 만약 sections 아래에 'steps'가 있다면 (legs처럼), 그 안에서 추출해야 합니다.
-                        // if (section.steps && Array.isArray(section.steps)) { ... }
                     });
                 } else if (route.legs && Array.isArray(route.legs)) {
-                    // 혹시라도 legs가 있는 응답이 올 경우를 대비 (원래 의도했던 대중교통 API 구조)
                     route.legs.forEach((leg: any) => {
                         if (leg.steps && Array.isArray(leg.steps)) {
                             leg.steps.forEach((step: any) => {

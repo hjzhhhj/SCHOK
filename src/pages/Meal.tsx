@@ -11,13 +11,13 @@ interface MealData {
 }
 
 const Container = styled.div`
-    width: 400px;
-    margin: 30px;
+    width: 350px;
     padding: 24px;
+    margin: 0px;
     border-radius: 16px;
-    background-color: #f0faff;
+    background-color: rgba(255, 255, 255, 0.95);
     box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
-    font-family: "Pretendard", "Noto Sans KR", sans-serif;
+    font-family: "Pretendard";
 `;
 
 const Title = styled.h2`
