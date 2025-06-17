@@ -13,6 +13,7 @@ interface MealData {
     MMEAL_SC_NM: string; // 급식 시간 (조식, 중식, 석식)
 }
 
+// --- 스타일 컴포넌트 ---
 const Container = styled.div`
     width: 350px;
     padding: 24px;
@@ -117,14 +118,24 @@ const NavButton = styled.button`
 
 // --- Meal 컴포넌트 ---
 const Meal: React.FC = () => {
-    const [meals, setMeals] = useState<MealData[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [noData, setNoData] = useState(false);
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const { userInfo } = useUserStore();
+    const [meals, setMeals] = useState<MealData[]>([]); // 급식 데이터
+    const [loading, setLoading] = useState(true); // 로딩 상태
+    const [noData, setNoData] = useState(false); // 데이터 없음 상태
+    
+    // 현재 표시 날짜 (로컬 스토리지에서 초기값 불러오기)
+    const [currentDate, setCurrentDate] = useState<Date>(() => {
+        const savedDate = localStorage.getItem('mealCurrentDate');
+        return savedDate ? new Date(savedDate) : new Date(); // 저장된 날짜가 없으면 오늘 날짜
+    });
+    
+    const { userInfo } = useUserStore(); // 사용자 정보 스토어에서 가져오기
 
-    // NEIS API 키를 컴포넌트 상단에서 선언 (ReferenceError 방지)
-    const serviceKey = import.meta.env.VITE_APP_NEIS_API_KEY;
+    const serviceKey = import.meta.env.VITE_APP_NEIS_API_KEY; // NEIS API 키
+
+    // currentDate가 변경될 때마다 로컬 스토리지에 저장
+    useEffect(() => {
+        localStorage.setItem('mealCurrentDate', currentDate.toISOString());
+    }, [currentDate]);
 
     // Date 객체를 API 요청에 맞는 YYYYMMDD 형식으로 변환
     const formatDate = (date: Date): string => {

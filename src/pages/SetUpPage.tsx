@@ -6,6 +6,7 @@ import useUserStore from "../store/userStore"; // 사용자 정보 관리 스토
 import type { UserInfo } from "../types/user"; // 사용자 정보 타입
 import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap"; // 학교 코드와 좌표 매핑 데이터
 
+// --- 스타일 컴포넌트 정의 ---
 const Container = styled.div`
     width: auto;
     min-width: 300px;
@@ -118,6 +119,8 @@ const SCHOOL_LIST = Object.keys(SCHOOL_CODE_MAP);
 // --- SetupPage 컴포넌트 ---
 const SetupPage: React.FC = () => {
   const { userInfo, setUserInfo } = useUserStore(); // 전역 사용자 정보와 설정 함수 가져오기
+  
+  // 폼 초기 상태를 Zustand 스토어의 userInfo 값으로 설정
   const [form, setForm] = useState<Partial<UserInfo>>({
     school: userInfo?.school || "",
     grade: userInfo?.grade || undefined,
@@ -125,6 +128,7 @@ const SetupPage: React.FC = () => {
     studentNum: userInfo?.studentNum || undefined,
     homeAddress: userInfo?.homeAddress || "",
   });
+  
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false); // 폼 확장/축소 상태
 
   // 입력 필드 값 변경 핸들러
@@ -192,7 +196,7 @@ const SetupPage: React.FC = () => {
         return;
       }
 
-      // Zustand 스토어에 사용자 정보 저장
+      // Zustand 스토어에 사용자 정보 저장 (persist 미들웨어 덕분에 로컬 스토리지에 자동 저장됨)
       setUserInfo(userInfoToSend);
       alert("사용자 정보가 저장되었습니다!");
       setIsFormOpen(false); // 폼 닫기
