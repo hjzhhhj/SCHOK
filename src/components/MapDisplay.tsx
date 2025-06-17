@@ -9,63 +9,50 @@ declare global {
 
 const MapContainer = styled.div`
   width: auto; 
-  height: 350px;
+  height: 300px; 
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
 `;
 
 interface MapDisplayProps {
-  startCoords: { x: number; y: number } | null;
-  endCoords: { x: number; y: number } | null;
-  routePaths: { x: number; y: number }[];
+  startCoords: { x: number; y: number } | null; // 출발지 (경도, 위도)
+  endCoords: { x: number; y: number } | null;   // 도착지 (경도, 위도)
+  routePaths: { x: number; y: number }[];       // 경로 좌표 배열 (경도, 위도)
 }
 
 const MapDisplay: React.FC<MapDisplayProps> = ({ startCoords, endCoords, routePaths }) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<any>(null);
+  const mapInstance = useRef<any>(null); // 지도 인스턴스를 저장할 ref
 
   useEffect(() => {
-    console.log("MapDisplay useEffect 실행됨");
-    console.log("window.kakao (at useEffect start):", window.kakao);
-    console.log("mapRef.current (at useEffect start):", mapRef.current);
-
+    // 카카오맵 SDK가 로드되었는지 확인
     if (window.kakao && mapRef.current) {
-      console.log("카카오맵 지도 초기화 시도 중...");
       const options = {
-        center: new window.kakao.maps.LatLng(37.566826, 126.9786567), // Default center (Seoul City Hall)
-        level: 3,
+        center: new window.kakao.maps.LatLng(37.566826, 126.9786567), // 기본 중심 (서울 시청)
+        level: 3, // 지도의 확대 레벨
       };
 
       mapInstance.current = new window.kakao.maps.Map(mapRef.current, options);
-      console.log("카카오맵 지도 인스턴스 생성됨:", mapInstance.current);
 
+      // 출발지/도착지 또는 경로가 있을 경우 지도를 그립니다.
       if (startCoords && endCoords) {
-        console.log("startCoords (y,x):", startCoords.y, startCoords.x);
-        console.log("endCoords (y,x):", endCoords.y, endCoords.x);
-
         const startLatLng = new window.kakao.maps.LatLng(startCoords.y, startCoords.x);
         const endLatLng = new window.kakao.maps.LatLng(endCoords.y, endCoords.x);
 
-        console.log("startLatLng 생성됨:", startLatLng);
-        console.log("endLatLng 생성됨:", endLatLng);
-
-        // Marker creation
         const startMarker = new window.kakao.maps.Marker({
           position: startLatLng,
           map: mapInstance.current,
           title: '출발지',
         });
-        console.log("startMarker 생성됨:", startMarker);
 
         const endMarker = new window.kakao.maps.Marker({
           position: endLatLng,
           map: mapInstance.current,
           title: '도착지',
         });
-        console.log("endMarker 생성됨:", endMarker);
 
+        // 경로 폴리라인 그리기
         if (routePaths.length > 0) {
-          console.log("경로 데이터 있음, 폴리라인 그리기 시도...");
           const linePath = routePaths.map(coord => new window.kakao.maps.LatLng(coord.y, coord.x));
           const polyline = new window.kakao.maps.Polyline({
             path: linePath,
@@ -76,24 +63,20 @@ const MapDisplay: React.FC<MapDisplayProps> = ({ startCoords, endCoords, routePa
           });
           polyline.setMap(mapInstance.current);
 
+          // 경로 전체가 보이도록 지도 중심과 확대 레벨 조정
           const bounds = new window.kakao.maps.LatLngBounds();
           linePath.forEach(latlng => bounds.extend(latlng));
           mapInstance.current.setBounds(bounds);
-          console.log("폴리라인 및 지도 바운드 설정 완료.");
         } else {
-            console.log("경로 데이터 없음 (routePaths empty). 출발지/도착지 중심으로 지도 설정.");
+            // 경로가 없으면 출발지와 도착지를 포함하는 바운드 설정
             const bounds = new window.kakao.maps.LatLngBounds();
             bounds.extend(startLatLng);
             bounds.extend(endLatLng);
             mapInstance.current.setBounds(bounds);
         }
-      } else {
-        console.log("startCoords 또는 endCoords가 유효하지 않아 마커/경로를 그릴 수 없음.");
       }
-    } else {
-        console.log("카카오맵 SDK 로드 또는 mapRef.current 문제 (else 블록):", { kakaoLoaded: !!window.kakao, mapRefCurrent: !!mapRef.current });
     }
-  }, [startCoords, endCoords, routePaths]);
+  }, [startCoords, endCoords, routePaths]); // 의존성 배열에 변경될 값들을 포함
 
   return <MapContainer ref={mapRef} />;
 };
