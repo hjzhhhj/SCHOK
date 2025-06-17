@@ -8,8 +8,8 @@ declare global {
 }
 
 const MapContainer = styled.div`
-  width: 400px; 
-  height: 400px;
+  width: auto; 
+  height: 350px;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
 `;

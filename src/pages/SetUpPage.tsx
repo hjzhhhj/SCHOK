@@ -2,30 +2,33 @@ import { useState } from "react";
 import styled from "styled-components";
 import useUserStore from "../store/userStore";
 import type { UserInfo } from "../types/user";
-import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap"; 
+import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap";
 
 const Container = styled.div`
-    width: 300px;
-    margin: 30px;
-    padding: 24px;
+    width: 100%;
+    margin: 45px 50px 0px 50px;
+    padding: 18px;
     border-radius: 16px;
-    background-color: #f0faff;
+    background-color: rgba(255, 255, 255, 0.95);
     box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
     display: flex;
-    flex-direction: column;
-    gap: 16px; 
-    font-family: "Pretendard", "Noto Sans KR", sans-serif;
+    flex-direction: row; 
+    align-items: center;
+    gap: 16px;
+    font-family: "Pretendard";
 `;
 
 const Title = styled.h1`
-    font-size: 28px;
+    padding-left: 12px;
+    font-size: 22px;
     font-weight: bold;
-    margin-bottom: 12px;
-    text-align: center;
     color: #007acc; 
+    white-space: nowrap; 
+    margin-right: auto;
 `;
 
 const Input = styled.input`
+    width: 180px;
     padding: 12px;
     font-size: 16px;
     border-radius: 8px; 
@@ -39,6 +42,7 @@ const Input = styled.input`
 `;
 
 const Select = styled.select`
+    width: 220px;
     padding: 12px;
     font-size: 16px;
     border-radius: 8px; 
