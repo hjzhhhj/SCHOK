@@ -18,6 +18,16 @@ const Container = styled.div`
     background-color: rgba(255, 255, 255, 0.95);
     box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
     font-family: "Pretendard";
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+`;
+
+const ContentArea = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 `;
 
 const Title = styled.h2`
@@ -38,6 +48,8 @@ const DateDisplay = styled.div`
 const List = styled.ul`
     list-style: none;
     padding: 0;
+    flex: 1;
+    overflow-y: auto;
 `;
 
 const ListItem = styled.li`
@@ -66,13 +78,18 @@ const Message = styled.p`
     text-align: center;
     color: #666;
     font-size: 16px;
-    margin-top: 24px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 `;
 
 const ButtonContainer = styled.div`
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
 `;
 
 const NavButton = styled.button`
@@ -199,31 +216,39 @@ const Meal: React.FC = () => {
     if (!userInfo) {
         return (
             <Container>
-                <Title>오늘의 급식</Title>
-                <Message>사용자 정보를 먼저 입력해주세요.</Message>
+                <ContentArea>
+                    <Title>오늘의 급식</Title>
+                    <Message>사용자 정보를 먼저 입력해주세요.</Message>
+                </ContentArea>
+                <ButtonContainer>
+                    <NavButton onClick={handlePreviousDay}>{"< 이전 날짜"}</NavButton>
+                    <NavButton onClick={handleNextDay}>{"다음 날짜 >"}</NavButton>
+                </ButtonContainer>
             </Container>
         );
     }
 
     return (
         <Container>
-            <Title>오늘의 급식</Title>
-            <DateDisplay>{displayDate(currentDate)}</DateDisplay>
+            <ContentArea>
+                <Title>오늘의 급식</Title>
+                <DateDisplay>{displayDate(currentDate)}</DateDisplay>
 
-            {loading ? (
-                <Message>급식 정보를 불러오는 중...</Message>
-            ) : noData ? (
+                {loading ? (
+                    <Message>급식 정보를 불러오는 중...</Message>
+                ) : noData ? (
                     <Message>선택한 날짜에는 급식 정보가 없어요.</Message>
-            ) : (
-                <List>
-                    {meals.map((meal, index) => (
-                        <ListItem key={index}>
-                            <MealType>{meal.MMEAL_SC_NM}</MealType>
-                            {meal.DDISH_NM.replace(/<br\/>/g, "\n")}
-                        </ListItem>
-                    ))}
-                </List>
-            )}
+                ) : (
+                    <List>
+                        {meals.map((meal, index) => (
+                            <ListItem key={index}>
+                                <MealType>{meal.MMEAL_SC_NM}</MealType>
+                                {meal.DDISH_NM.replace(/<br\/>/g, "\n")}
+                            </ListItem>
+                        ))}
+                    </List>
+                )}
+            </ContentArea>
             <ButtonContainer>
                 <NavButton onClick={handlePreviousDay}>{"< 이전 날짜"}</NavButton>
                 <NavButton onClick={handleNextDay}>{"다음 날짜 >"}</NavButton>
