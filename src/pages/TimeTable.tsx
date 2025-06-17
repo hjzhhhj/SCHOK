@@ -12,6 +12,7 @@ interface TimetableEntry {
     ITRT_CNTNT: string; // 과목명 또는 내용
 }
 
+// --- 스타일 컴포넌트 ---
 const Container = styled.div`
     width: 350px;
     margin: 0px;
@@ -116,8 +117,19 @@ const Timetable: React.FC = () => {
     const [timetable, setTimetable] = useState<TimetableEntry[]>([]); // 시간표 데이터
     const [loading, setLoading] = useState(true); // 로딩 상태
     const [noData, setNoData] = useState(false); // 데이터 없음 상태
-    const [currentDate, setCurrentDate] = useState(new Date()); // 현재 표시 날짜
+    
+    // 현재 표시 날짜 (로컬 스토리지에서 초기값 불러오기)
+    const [currentDate, setCurrentDate] = useState<Date>(() => {
+        const savedDate = localStorage.getItem('timetableCurrentDate');
+        return savedDate ? new Date(savedDate) : new Date(); // 저장된 날짜가 없으면 오늘 날짜
+    });
+    
     const { userInfo } = useUserStore(); // 사용자 정보 스토어에서 가져오기
+
+    // currentDate가 변경될 때마다 로컬 스토리지에 저장
+    useEffect(() => {
+        localStorage.setItem('timetableCurrentDate', currentDate.toISOString());
+    }, [currentDate]);
 
     // 날짜를 API 요청 형식 (YYYYMMDD)으로 변환
     const formatDate = (date: Date): string => {
@@ -269,7 +281,7 @@ const Timetable: React.FC = () => {
     return (
         <Container>
             <ContentArea>
-                <Title>시간표</Title>
+                <Title>☁️ 이날의 시간표 ☁️</Title>
                 <DateDisplay>{displayDate(currentDate)}</DateDisplay>
 
                 {loading ? ( // 로딩 중일 때 메시지

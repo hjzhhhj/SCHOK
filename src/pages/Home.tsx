@@ -1,11 +1,12 @@
 // 출발지 주소를 입력받아 학교까지의 경로를 검색하고 지도에 표시하는 컴포넌트
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react'; // useEffect 추가
 import styled from 'styled-components';
 import axios from 'axios';
 import useUserStore from '../store/userStore';
 import MapDisplay from '../components/MapDisplay'; // 지도 컴포넌트 불러오기
 
+// --- 스타일 컴포넌트 정의 ---
 const Container = styled.div`
     width: 500px;
     padding: 24px;
@@ -112,7 +113,13 @@ const SuggestionItem = styled.li`
 // --- Home 컴포넌트 ---
 const Home: React.FC = () => {
     const { userInfo, setUserInfo } = useUserStore(); // 사용자 정보 및 설정 함수 가져오기
-    const [startLocation, setStartLocation] = useState<string>(''); // 출발지 주소 입력 값
+    
+    // 출발지 주소 입력 값 상태 (로컬 스토리지에서 초기값 불러오기)
+    const [startLocation, setStartLocation] = useState<string>(() => {
+        const savedLocation = localStorage.getItem('startLocation');
+        return savedLocation || ''; // 저장된 값이 없으면 빈 문자열 반환
+    });
+    
     const [loading, setLoading] = useState<boolean>(false);         // 경로 검색 로딩 상태
     const [routeInfo, setRouteInfo] = useState<{ duration: number; distance: number; } | null>(null); // 경로 정보 (소요 시간, 거리)
     const [error, setError] = useState<string | null>(null);       // 오류 메시지
@@ -125,6 +132,11 @@ const Home: React.FC = () => {
     const [showHomeSuggestion, setShowHomeSuggestion] = useState<boolean>(false); // 집 주소 추천 목록 표시 여부
 
     const KAKAO_REST_API_KEY = import.meta.env.VITE_APP_KAKAO_REST_API_KEY; // 카카오 REST API 키
+
+    // startLocation 값이 변경될 때마다 로컬 스토리지에 저장
+    useEffect(() => {
+        localStorage.setItem('startLocation', startLocation);
+    }, [startLocation]); 
 
     // MapDisplay 컴포넌트로부터 지도가 로드되었다는 콜백을 받음
     const handleMapLoaded = useCallback(() => {
@@ -187,7 +199,11 @@ const Home: React.FC = () => {
             setEndCoords(schoolLatLng);
 
             // 현재 입력된 출발지를 사용자 정보에 저장 (추천 주소로 활용)
-            setUserInfo({ ...userInfo, homeAddress: startLocation });
+            // homeAddress는 선택 사항이므로, setUserInfo는 UserInfo의 모든 속성을 요구하지 않습니다.
+            // userInfo가 null이 아니라고 가정하고 안전하게 업데이트합니다.
+            if (userInfo) {
+                setUserInfo({ ...userInfo, homeAddress: startLocation });
+            }
 
             // 3. 카카오 길찾기 API 호출 (자동차 경로)
             const routeResponse = await axios.get(
