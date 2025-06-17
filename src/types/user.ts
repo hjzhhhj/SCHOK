@@ -5,4 +5,5 @@ export interface UserInfo {
   studentNum: number; 
   schoolLatitude: number; 
   schoolLongitude: number; 
+  homeAddress?: string; 
 }
