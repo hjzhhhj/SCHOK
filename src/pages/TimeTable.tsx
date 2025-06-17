@@ -14,9 +14,19 @@ const Container = styled.div`
     margin: 0px;
     padding: 24px;
     border-radius: 16px;
-    background-color:rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.95);
     box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
     font-family: "Pretendard", "Noto Sans KR", sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 600px; 
+`;
+
+const ContentArea = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 `;
 
 const Title = styled.h2`
@@ -37,6 +47,8 @@ const DateDisplay = styled.div`
 const List = styled.ul`
     list-style: none;
     padding: 0;
+    flex: 1;
+    overflow-y: auto;
 `;
 
 const ListItem = styled.li`
@@ -62,13 +74,18 @@ const Message = styled.p`
     text-align: center;
     color: #666;
     font-size: 16px;
-    margin-top: 24px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 `;
 
 const ButtonContainer = styled.div`
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
 `;
 
 const NavButton = styled.button`
@@ -215,30 +232,38 @@ const Timetable: React.FC = () => {
     if (!userInfo) {
         return (
             <Container>
-                <Title>오늘의 시간표</Title>
-                <Message>사용자 정보를 먼저 입력해주세요.</Message>
+                <ContentArea>
+                    <Title>오늘의 시간표</Title>
+                    <Message>사용자 정보를 먼저 입력해주세요.</Message>
+                </ContentArea>
+                <ButtonContainer>
+                    <NavButton onClick={handlePreviousDay}>{"< 이전 날짜"}</NavButton>
+                    <NavButton onClick={handleNextDay}>{"다음 날짜 >"}</NavButton>
+                </ButtonContainer>
             </Container>
         );
     }
 
     return (
         <Container>
-            <Title>오늘의 시간표</Title>
-            <DateDisplay>{displayDate(currentDate)}</DateDisplay>
+            <ContentArea>
+                <Title>오늘의 시간표</Title>
+                <DateDisplay>{displayDate(currentDate)}</DateDisplay>
 
-            {loading ? (
-                <Message>시간표 불러오는 중...</Message>
-            ) : noData ? (
-                <Message>선택한 날짜에는 등록된 시간표가 없어요.</Message>
-            ) : (
-                <List>
-                    {timetable.map((entry, index) => (
-                        <ListItem key={index}>
-                            <Period>{entry.PERIO}교시</Period>: {entry.ITRT_CNTNT}
-                        </ListItem>
-                    ))}
-                </List>
-            )}
+                {loading ? (
+                    <Message>시간표 불러오는 중...</Message>
+                ) : noData ? (
+                    <Message>선택한 날짜에는 등록된 시간표가 없어요.</Message>
+                ) : (
+                    <List>
+                        {timetable.map((entry, index) => (
+                            <ListItem key={index}>
+                                <Period>{entry.PERIO}교시</Period>: {entry.ITRT_CNTNT}
+                            </ListItem>
+                        ))}
+                    </List>
+                )}
+            </ContentArea>
             <ButtonContainer>
                 <NavButton onClick={handlePreviousDay}>{"< 이전 날짜"}</NavButton>
                 <NavButton onClick={handleNextDay}>{"다음 날짜 >"}</NavButton>

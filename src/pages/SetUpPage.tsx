@@ -6,7 +6,7 @@ import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap";
 
 const Container = styled.div`
     width: 100%;
-    margin: 45px 50px 0px 50px;
+    margin: 25px 50px 0px 50px;
     padding: 18px;
     border-radius: 16px;
     background-color: rgba(255, 255, 255, 0.95);
