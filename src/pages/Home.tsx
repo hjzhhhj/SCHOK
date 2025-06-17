@@ -1,17 +1,21 @@
+// Home.tsx
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import useUserStore from '../store/userStore';
-import MapDisplay from '../components/MapDisplay';
+import MapDisplay from '../components/MapDisplay'; // MapDisplay 임포트
+// SCHOOL_CODE_MAP 임포트는 이 코드에서는 사용되지 않으므로 제거하거나 그대로 두셔도 됩니다.
+// import { SCHOOL_CODE_MAP } from '../utils/schoolCodeMap'; 
 
+// 디자인 적용 시작 (이전 Google Maps Home.tsx의 스타일)
 const Container = styled.div`
-    width: 500px;
+    width: 500px; /* 원본 400px에서 500px로 변경 */
     padding: 24px;
-    margin: 0px;
+    margin: 0px; /* 원본 30px에서 0px로 변경 */
     border-radius: 16px;
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.95); /* 원본 #f0faff에서 변경 */
     box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
-    font-family: "Pretendard";
+    font-family: "Pretendard"; /* 원본 "Pretendard", "Noto Sans KR", sans-serif에서 변경 */
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -38,15 +42,15 @@ const Input = styled.input`
 
 const Button = styled.button`
     padding: 10px 15px;
-    font-size: 16px;
-    background-color: #007acc;
+    background-color: #007acc; /* 원본 #007acc 유지 */
     color: white;
     border: none;
     border-radius: 8px;
+    font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.3s ease; /* 원본 0.2s에서 0.3s로 변경 */
     &:hover {
-        background-color: #005fa3;
+        background-color: #005f99; /* 원본 #005fa3에서 변경 */
     }
     &:disabled {
         background-color: #cccccc;
@@ -54,25 +58,30 @@ const Button = styled.button`
     }
 `;
 
-const ResultContainer = styled.div`
-    margin-top: 20px;
-    padding: 15px;
-    border-top: 1px solid #e0e0e0;
-`;
-
-const ResultItem = styled.p`
-    font-size: 16px;
-    color: #333;
-    margin-bottom: 8px;
-`;
-
 const Message = styled.p`
     text-align: center;
-    color: #666;
     font-size: 16px;
+    color: #555; /* 원본 #666에서 변경 */
     margin-top: 10px;
 `;
 
+const ResultContainer = styled.div`
+    background-color: #e0f2ff; 
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px; 
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid #a0d9ff;
+`;
+
+const ResultItem = styled.p`
+    margin: 0; 
+    font-size: 15px; 
+    color: #333;
+`;
+// 디자인 적용 끝
 
 const Home: React.FC = () => {
     const { userInfo } = useUserStore();
@@ -81,9 +90,10 @@ const Home: React.FC = () => {
     const [routeInfo, setRouteInfo] = useState<{ duration: number; distance: number; } | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const [startCoords, setStartCoords] = useState<{ x: number; y: number } | null>(null);
-    const [endCoords, setEndCoords] = useState<{ x: number; y: number } | null>(null);
-    const [routePaths, setRoutePaths] = useState<{ x: number; y: number }[]>([]);
+    // 지도에 표시할 좌표 상태 추가
+    const [startCoords, setStartCoords] = useState<{ x: number; y: number } | null>(null); // 출발지 (경도, 위도)
+    const [endCoords, setEndCoords] = useState<{ x: number; y: number } | null>(null);   // 도착지 (경도, 위도)
+    const [routePaths, setRoutePaths] = useState<{ x: number; y: number }[]>([]); // 경로를 그릴 좌표 배열
 
     const KAKAO_REST_API_KEY = import.meta.env.VITE_APP_KAKAO_REST_API_KEY;
 
@@ -104,12 +114,13 @@ const Home: React.FC = () => {
         setLoading(true);
         setError(null);
         setRouteInfo(null);
-        setStartCoords(null);
-        setEndCoords(null);
-        setRoutePaths([]);
+        setStartCoords(null); // 새로운 검색 전에 초기화
+        setEndCoords(null);    // 새로운 검색 전에 초기화
+        setRoutePaths([]);     // 새로운 검색 전에 초기화
 
 
         try {
+            // 1. 출발지 주소를 위도/경도로 변환 (지오코딩)
             const geoResponse = await axios.get(
                 `https://dapi.kakao.com/v2/local/search/address.json?query=${startLocation}`,
                 {
@@ -126,22 +137,23 @@ const Home: React.FC = () => {
             }
 
             const startCoordData = {
-                x: parseFloat(geoResponse.data.documents[0].x),
-                y: parseFloat(geoResponse.data.documents[0].y),
+                x: parseFloat(geoResponse.data.documents[0].x), // 경도 (number로 변환)
+                y: parseFloat(geoResponse.data.documents[0].y), // 위도 (number로 변환)
             };
-            setStartCoords(startCoordData);
-            setEndCoords({ x: userInfo.schoolLongitude, y: userInfo.schoolLatitude });
+            setStartCoords(startCoordData); // 출발지 좌표 저장
+            setEndCoords({ x: userInfo.schoolLongitude, y: userInfo.schoolLatitude }); // 도착지 좌표 저장
 
             console.log("출발지 좌표 (경도, 위도):", startCoordData.x, startCoordData.y);
 
 
+            // 2. 길찾기 API 호출 (대중교통)
             const routeResponse = await axios.get(
-                'https://apis-navi.kakao.com/v1/directions', // Corrected Kakao Mobility API endpoint
+                'https://apis-navi.kakaomobility.com/v1/directions',
                 {
                     params: {
                         origin: `${startCoordData.x},${startCoordData.y}`,
                         destination: `${userInfo.schoolLongitude},${userInfo.schoolLatitude}`,
-                        priority: 'RECOMMEND',
+                        priority: 'RECOMMEND', // 추천 경로
                     },
                     headers: { Authorization: `KakaoAK ${KAKAO_REST_API_KEY}` },
                 }
@@ -157,8 +169,17 @@ const Home: React.FC = () => {
 
                 const extractedPaths: { x: number; y: number }[] = [];
 
+                // ✨ routes[0].sections 배열을 확인하고 순회
                 if (route.sections && Array.isArray(route.sections)) {
                     route.sections.forEach((section: any) => {
+                        // sections 내부의 roads (또는 steps)를 찾아 vertexes 추출
+                        // 대중교통 API가 'sections'를 반환하는 경우, 그 안의 상세 구조를 정확히 확인해야 합니다.
+                        // 보통 section 내부에 'guides'나 'roads'가 있을 수 있습니다.
+                        // 현재 응답에 sections만 있고 legs가 없다면, sections의 하위 구조를 확인해야 합니다.
+                        // 개발자 도구 Network 탭에서 sections[0] 내부의 정확한 구조를 봐야 합니다.
+
+                        // 임시로, sections[0] 아래에 바로 'roads'나 'vertexes'가 있다고 가정합니다.
+                        // 이 부분은 실제 API 응답 구조를 보고 맞춰야 합니다!
                         if (section.roads && Array.isArray(section.roads)) {
                             section.roads.forEach((road: any) => {
                                 if (road.vertexes && Array.isArray(road.vertexes)) {
@@ -171,8 +192,11 @@ const Home: React.FC = () => {
                                 }
                             });
                         }
+                        // 만약 sections 아래에 'steps'가 있다면 (legs처럼), 그 안에서 추출해야 합니다.
+                        // if (section.steps && Array.isArray(section.steps)) { ... }
                     });
                 } else if (route.legs && Array.isArray(route.legs)) {
+                    // 혹시라도 legs가 있는 응답이 올 경우를 대비 (원래 의도했던 대중교통 API 구조)
                     route.legs.forEach((leg: any) => {
                         if (leg.steps && Array.isArray(leg.steps)) {
                             leg.steps.forEach((step: any) => {
@@ -192,7 +216,7 @@ const Home: React.FC = () => {
                         }
                     });
                 }
-                
+
                 setRoutePaths(extractedPaths);
 
                 if (extractedPaths.length === 0) {
@@ -233,25 +257,24 @@ const Home: React.FC = () => {
 
     return (
         <Container>
-            <Title>등교 경로 찾기</Title>
+            <Title>등하교 경로</Title> {/* Title 텍스트 변경 */}
             <Input
                 type="text"
-                placeholder="출발지 주소 입력 (예: 서울특별시 강남구 역삼동)"
+                placeholder="목적지 (예: 강원도 속초시 중앙동)" /* placeholder 텍스트 변경 */
                 value={startLocation}
                 onChange={(e) => setStartLocation(e.target.value)}
                 disabled={loading}
             />
             <Button onClick={handleSearchRoute} disabled={loading || !startLocation}>
-                {loading ? '경로 검색 중...' : '학교까지 길찾기'}
+                {loading ? '경로 검색 중...' : '경로 검색'} {/* Button 텍스트 변경 */}
             </Button>
 
             {error && <Message style={{ color: 'red' }}>{error}</Message>}
 
             {routeInfo && (
                 <ResultContainer>
-                    <ResultItem>예상 소요 시간: 약 {routeInfo.duration}분</ResultItem>
-                    <ResultItem>총 거리: 약 {routeInfo.distance}km</ResultItem>
-                    <ResultItem>자세한 경로 정보는 지도에서 확인하세요.</ResultItem>
+                    <ResultItem>📍 예상 소요 시간: 약 {routeInfo.duration}분</ResultItem> 
+                    <ResultItem>📏 총 거리: 약 {routeInfo.distance}km</ResultItem> 
                 </ResultContainer>
             )}
 
