@@ -1,13 +1,15 @@
-// SetUpPage.tsx
+// 사용자(학생)의 학교, 학년, 반, 번호, 집 주소 정보를 입력받아 저장하는 컴포넌트
+
 import { useState } from "react";
 import styled from "styled-components";
-import useUserStore from "../store/userStore";
-import type { UserInfo } from "../types/user";
-import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap";
+import useUserStore from "../store/userStore"; // 사용자 정보 관리 스토어
+import type { UserInfo } from "../types/user"; // 사용자 정보 타입
+import { SCHOOL_CODE_MAP } from "../utils/schoolCodeMap"; // 학교 코드와 좌표 매핑 데이터
 
 const Container = styled.div`
-    width: 100%;
-    margin: 25px 50px 0px 50px;
+    width: auto;
+    min-width: 300px;
+    margin: 0px 50px 0px 50px;
     padding: 18px;
     border-radius: 16px;
     background-color: rgba(255, 255, 255, 0.95);
@@ -17,6 +19,8 @@ const Container = styled.div`
     align-items: center;
     gap: 16px;
     font-family: "Pretendard";
+    min-height: 70px;
+    overflow: hidden;
 `;
 
 const Title = styled.h1`
@@ -25,11 +29,13 @@ const Title = styled.h1`
     font-weight: bold;
     color: #007acc;
     white-space: nowrap;
-    margin-right: auto;
+    flex-shrink: 0;
+    margin-right: 10px;
 `;
 
 const Input = styled.input`
-    width: 180px;
+    width: 100%;
+    min-width: 170px;
     padding: 12px;
     font-size: 16px;
     border-radius: 8px;
@@ -43,7 +49,8 @@ const Input = styled.input`
 `;
 
 const Select = styled.select`
-    width: 180px;
+    width: 100%;
+    min-width: 100px;
     padding: 12px;
     font-size: 16px;
     border-radius: 8px;
@@ -66,52 +73,105 @@ const Button = styled.button`
     cursor: pointer;
     transition: background-color 0.3s ease;
     white-space: nowrap;
+    flex-shrink: 0;
     &:hover {
         background-color: #005f99;
     }
 `;
 
-const GRADE_LIST = [1, 2, 3];
+const FormWrapper = styled.div<{ $isOpen: boolean }>`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    overflow: hidden;
+    max-width: ${props => (props.$isOpen ? '900px' : '0px')};
+    opacity: ${props => (props.$isOpen ? '1' : '0')};
+    transition: max-width 0.7s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.5s ease-in-out;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
 
+    ${props => !props.$isOpen && `
+        pointer-events: none;
+        visibility: hidden;
+    `}
+`;
+
+const ToggleButton = styled(Button)`
+    background-color: transparent;
+    color: #009fe3;
+    padding: 8px 12px;
+    font-size: 18px;
+    font-weight: bold;
+    flex-shrink: 0;
+    margin-left: auto;
+    &:hover {
+        background-color: #e6f7ff;
+        color: #007bb6;
+    }
+`;
+
+// --- 상수 데이터 ---
+const GRADE_LIST = [1, 2, 3];
 const SCHOOL_LIST = Object.keys(SCHOOL_CODE_MAP);
 
+// --- SetupPage 컴포넌트 ---
 const SetupPage: React.FC = () => {
-  const { userInfo, setUserInfo } = useUserStore();
+  const { userInfo, setUserInfo } = useUserStore(); // 전역 사용자 정보와 설정 함수 가져오기
   const [form, setForm] = useState<Partial<UserInfo>>({
     school: userInfo?.school || "",
     grade: userInfo?.grade || undefined,
     classNum: userInfo?.classNum || undefined,
     studentNum: userInfo?.studentNum || undefined,
-    homeAddress: userInfo?.homeAddress || "", // homeAddress 초기값 설정
+    homeAddress: userInfo?.homeAddress || "",
   });
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false); // 폼 확장/축소 상태
 
+  // 입력 필드 값 변경 핸들러
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]:
-        name === "grade" || name === "classNum" || name === "studentNum"
-          ? parseInt(value)
-          : value,
-    }));
+    // 학년, 반, 번호는 숫자로 변환하고 0 이하일 경우 undefined로 설정
+    if (name === "grade" || name === "classNum" || name === "studentNum") {
+      const parsedValue = parseInt(value);
+      if (isNaN(parsedValue) || parsedValue <= 0) {
+        setForm((prev) => ({
+          ...prev,
+          [name]: undefined,
+        }));
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        [name]: parsedValue,
+      }));
+    } else {
+      // 그 외 필드는 그대로 값 저장
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
+  // 폼 제출 핸들러
   const handleSubmit = () => {
+    // 필수 입력 필드 유효성 검사
     if (
       form.school &&
       form.grade &&
       form.classNum &&
-      form.studentNum &&
-      form.homeAddress !== undefined // homeAddress가 비어있어도 무방, 그러나 존재 여부 확인
+      form.studentNum
     ) {
+      // 선택된 학교의 좌표 정보 가져오기
       const selectedSchool = SCHOOL_CODE_MAP[form.school];
       if (!selectedSchool) {
         alert("유효하지 않은 학교입니다.");
         return;
       }
 
+      // 저장할 사용자 정보 객체 생성
       const userInfoToSend: UserInfo = {
         school: form.school,
         grade: form.grade,
@@ -119,80 +179,95 @@ const SetupPage: React.FC = () => {
         studentNum: form.studentNum,
         schoolLatitude: selectedSchool.schoolLatitude,
         schoolLongitude: selectedSchool.schoolLongitude,
-        homeAddress: form.homeAddress, // homeAddress 저장
+        homeAddress: form.homeAddress || "", // 집 주소는 선택 사항
       };
 
+      // 숫자 필드의 유효성 재검사 (음수나 0 입력 방지)
       if (
-        isNaN(userInfoToSend.grade) ||
-        isNaN(userInfoToSend.classNum) ||
-        isNaN(userInfoToSend.studentNum)
+        isNaN(userInfoToSend.grade) || userInfoToSend.grade <= 0 ||
+        isNaN(userInfoToSend.classNum) || userInfoToSend.classNum <= 0 ||
+        isNaN(userInfoToSend.studentNum) || userInfoToSend.studentNum <= 0
       ) {
-        alert("학년, 반, 번호는 유효한 숫자여야 합니다.");
+        alert("학년, 반, 번호는 1 이상의 유효한 숫자여야 합니다.");
         return;
       }
 
+      // Zustand 스토어에 사용자 정보 저장
       setUserInfo(userInfoToSend);
       alert("사용자 정보가 저장되었습니다!");
+      setIsFormOpen(false); // 폼 닫기
     } else {
-      alert("모든 필수 항목을 입력해주세요.");
+      // 필수 입력 필드가 누락된 경우 경고
+      alert("학교, 학년, 반, 번호는 필수 입력 항목입니다.");
     }
   };
 
   return (
     <Container>
-      <Title>사용자 정보 입력</Title>
-      <Select
-        name="school"
-        value={form.school}
-        onChange={handleChange}
-        required
-      >
-        <option value="" disabled>학교를 선택해주세요</option>
-        {SCHOOL_LIST.map((schoolName) => (
-          <option key={schoolName} value={schoolName}>
-            {schoolName}
-          </option>
-        ))}
-      </Select>
-      <Select
-        name="grade"
-        value={form.grade}
-        onChange={handleChange}
-        required
-      >
-        <option value="" disabled>학년을 선택해주세요</option>
-        {GRADE_LIST.map((gradeNum) => (
-          <option key={gradeNum} value={gradeNum}>
-            {gradeNum}학년
-          </option>
-        ))}
-      </Select>
-      <Input
-        name="classNum"
-        type="number"
-        placeholder="반"
-        value={form.classNum}
-        onChange={handleChange}
-        required
-      />
-      <Input
-        name="studentNum"
-        type="number"
-        placeholder="번호"
-        value={form.studentNum}
-        onChange={handleChange}
-        required
-      />
-      {/* 집 주소 입력 필드 추가 */}
-      <Input
-        name="homeAddress"
-        type="text"
-        placeholder="집 도로명 주소 (예: 서울 강남구 테헤란로 134)"
-        value={form.homeAddress}
-        onChange={handleChange}
-        required
-      />
-      <Button onClick={handleSubmit}>정보 저장</Button>
+      <Title>⚙️ 설정 </Title>
+      
+      {/* 폼 확장/축소에 따라 보이는 입력 필드들 */}
+      <FormWrapper $isOpen={isFormOpen}>
+        <Select
+          name="school"
+          value={form.school}
+          onChange={handleChange}
+          required
+        >
+          <option value="" disabled>학교</option>
+          {SCHOOL_LIST.map((schoolName) => (
+            <option key={schoolName} value={schoolName}>
+              {schoolName}
+            </option>
+          ))}
+        </Select>
+        <Select
+          name="grade"
+          value={form.grade}
+          onChange={handleChange}
+          required
+        >
+          <option value="" disabled>학년</option>
+          {GRADE_LIST.map((gradeNum) => (
+            <option key={gradeNum} value={gradeNum}>
+              {gradeNum}학년
+            </option>
+          ))}
+        </Select>
+        <Input
+          name="classNum"
+          type="number"
+          placeholder="반"
+          value={form.classNum === undefined ? "" : form.classNum}
+          onChange={handleChange}
+          required
+          min="1"
+        />
+        <Input
+          name="studentNum"
+          type="number"
+          placeholder="번호"
+          value={form.studentNum === undefined ? "" : form.studentNum}
+          onChange={handleChange}
+          required
+          min="1"
+        />
+        <Input
+          name="homeAddress"
+          type="text"
+          placeholder="집 도로명 주소 (선택 사항)"
+          value={form.homeAddress}
+          onChange={handleChange}
+        />
+      </FormWrapper>
+
+      {/* 폼이 열렸을 때만 정보 저장 버튼 표시 */}
+      {isFormOpen && <Button onClick={handleSubmit}>저장</Button>}
+      
+      {/* 폼 확장/축소 토글 버튼 */}
+      <ToggleButton onClick={() => setIsFormOpen(!isFormOpen)}>
+        {isFormOpen ? "<" : ">"}
+      </ToggleButton>
     </Container>
   );
 };
