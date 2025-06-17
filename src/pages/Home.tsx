@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
 import useUserStore from '../store/userStore';
 import MapDisplay from '../components/MapDisplay';
 
@@ -38,15 +37,15 @@ const Input = styled.input`
 
 const Button = styled.button`
     padding: 10px 15px;
-    font-size: 16px;
     background-color: #007acc;
     color: white;
+    font-size: 16px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease-in-out;
     &:hover {
-        background-color: #005fa3;
+        background-color: #005f99;
     }
     &:disabled {
         background-color: #cccccc;
@@ -54,213 +53,184 @@ const Button = styled.button`
     }
 `;
 
+const Message = styled.p`
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+`;
+
 const ResultContainer = styled.div`
-    margin-top: 20px;
+    background-color: #e0f2ff;
     padding: 15px;
-    border-top: 1px solid #e0e0e0;
+    border-radius: 12px;
+    margin-top: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 128, 255, 0.1);
 `;
 
 const ResultItem = styled.p`
+    margin: 5px 0;
     font-size: 16px;
-    color: #333;
-    margin-bottom: 8px;
+    color: #005f99;
+    &:first-child {
+        font-weight: bold;
+    }
 `;
-
-const Message = styled.p`
-    text-align: center;
-    color: #666;
-    font-size: 16px;
-    margin-top: 10px;
-`;
-
 
 const Home: React.FC = () => {
-    const { userInfo } = useUserStore();
     const [startLocation, setStartLocation] = useState<string>('');
-    const [loading, setLoading] = useState<boolean>(false);
-    const [routeInfo, setRouteInfo] = useState<{ duration: number; distance: number; } | null>(null);
-    const [error, setError] = useState<string | null>(null);
-
     const [startCoords, setStartCoords] = useState<{ x: number; y: number } | null>(null);
     const [endCoords, setEndCoords] = useState<{ x: number; y: number } | null>(null);
-    const [routePaths, setRoutePaths] = useState<{ x: number; y: number }[]>([]);
+    const [routeInfo, setRouteInfo] = useState<{ duration: string; distance: string } | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState<boolean>(false);
+    
+    const { userInfo } = useUserStore();
 
-    const KAKAO_REST_API_KEY = import.meta.env.VITE_APP_KAKAO_REST_API_KEY;
-
-    const handleSearchRoute = async () => {
-        if (!startLocation) {
-            setError('출발 위치를 입력해주세요.');
-            return;
-        }
-        if (!userInfo || !userInfo.schoolLatitude || !userInfo.schoolLongitude) {
-            setError('학교 정보가 설정되지 않았습니다. 설정 페이지에서 학교를 선택해주세요.');
-            return;
-        }
-
-        console.log("userInfo:", userInfo);
-        console.log("KAKAO_REST_API_KEY:", KAKAO_REST_API_KEY ? "키 존재" : "키 없음");
-
-
-        setLoading(true);
-        setError(null);
-        setRouteInfo(null);
-        setStartCoords(null);
-        setEndCoords(null);
-        setRoutePaths([]);
-
-
-        try {
-            const geoResponse = await axios.get(
-                `https://dapi.kakao.com/v2/local/search/address.json?query=${startLocation}`,
-                {
-                    headers: { Authorization: `KakaoAK ${KAKAO_REST_API_KEY}` },
-                }
-            );
-
-            console.log("카카오 주소 검색 응답:", geoResponse.data);
-
-            if (geoResponse.data.documents.length === 0) {
-                setError('입력하신 출발 주소를 찾을 수 없습니다.');
-                setLoading(false);
-                return;
-            }
-
-            const startCoordData = {
-                x: parseFloat(geoResponse.data.documents[0].x),
-                y: parseFloat(geoResponse.data.documents[0].y),
-            };
-            setStartCoords(startCoordData);
+    // userInfo.schoolLocation이 변경될 때마다 endCoords 설정
+    useEffect(() => {
+        if (userInfo?.schoolLatitude && userInfo?.schoolLongitude) {
             setEndCoords({ x: userInfo.schoolLongitude, y: userInfo.schoolLatitude });
+        } else {
+            // 앱 로드 시 즉시 에러를 표시하지 않고,
+            // 'searchRoute' 시점에 endCoords가 없으면 에러를 띄웁니다.
+            setEndCoords(null); 
+        }
+    }, [userInfo]);
 
-            console.log("출발지 좌표 (경도, 위도):", startCoordData.x, startCoordData.y);
-
-
-            const routeResponse = await axios.get(
-                'https://apis-navi.kakao.com/v1/directions', // Corrected Kakao Mobility API endpoint
-                {
-                    params: {
-                        origin: `${startCoordData.x},${startCoordData.y}`,
-                        destination: `${userInfo.schoolLongitude},${userInfo.schoolLatitude}`,
-                        priority: 'RECOMMEND',
-                    },
-                    headers: { Authorization: `KakaoAK ${KAKAO_REST_API_KEY}` },
-                }
-            );
-
-            console.log("카카오 길찾기 응답:", routeResponse.data);
-            if (routeResponse.data.routes && routeResponse.data.routes.length > 0) {
-                const route = routeResponse.data.routes[0];
-                const durationMinutes = Math.ceil(route.summary.duration / 60);
-                const distanceKm = (route.summary.distance / 1000).toFixed(1);
-
-                setRouteInfo({ duration: durationMinutes, distance: parseFloat(distanceKm) });
-
-                const extractedPaths: { x: number; y: number }[] = [];
-
-                if (route.sections && Array.isArray(route.sections)) {
-                    route.sections.forEach((section: any) => {
-                        if (section.roads && Array.isArray(section.roads)) {
-                            section.roads.forEach((road: any) => {
-                                if (road.vertexes && Array.isArray(road.vertexes)) {
-                                    for (let i = 0; i < road.vertexes.length; i += 2) {
-                                        extractedPaths.push({
-                                            x: road.vertexes[i],
-                                            y: road.vertexes[i + 1],
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                    });
-                } else if (route.legs && Array.isArray(route.legs)) {
-                    route.legs.forEach((leg: any) => {
-                        if (leg.steps && Array.isArray(leg.steps)) {
-                            leg.steps.forEach((step: any) => {
-                                if (step.roads && Array.isArray(step.roads)) {
-                                    step.roads.forEach((road: any) => {
-                                        if (road.vertexes && Array.isArray(road.vertexes)) {
-                                            for (let i = 0; i < road.vertexes.length; i += 2) {
-                                                extractedPaths.push({
-                                                    x: road.vertexes[i],
-                                                    y: road.vertexes[i + 1],
-                                                });
-                                            }
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-                
-                setRoutePaths(extractedPaths);
-
-                if (extractedPaths.length === 0) {
-                    setError('경로 데이터가 추출되지 않았습니다. 대중교통 경로가 없거나 API 응답 구조가 예상과 다릅니다.');
-                }
-
-            } else {
-                setError('경로를 찾을 수 없습니다.');
-                setRoutePaths([]);
+    // Google Maps API 로드 상태를 감지하는 useEffect
+    useEffect(() => {
+        const checkGoogleMaps = setInterval(() => {
+            if (window.google && window.google.maps) {
+                setIsGoogleMapsLoaded(true);
+                clearInterval(checkGoogleMaps);
+                console.log("Google Maps API 로드 완료!");
             }
+        }, 500); // 0.5초마다 확인
 
-        } catch (err: any) {
-            console.error("길찾기 에러 상세:", err);
+        return () => clearInterval(checkGoogleMaps); // 컴포넌트 언마운트 시 클린업
+    }, []);
 
-            if (axios.isAxiosError(err)) {
-                if (err.response) {
-                    console.error("에러 응답 데이터:", err.response.data);
-                    console.error("에러 응답 상태:", err.response.status);
-                    if (err.response.status === 401) {
-                        setError('API 인증 실패. 카카오 REST API 키를 확인해주세요.');
-                    } else if (err.response.status === 403) {
-                        setError('API 권한 없음. 카카오 개발자 센터에 웹 플랫폼 등록 및 API 활성화를 확인해주세요.');
+    // 경로 검색 및 Geocoding을 수행하는 함수
+    const searchRoute = async () => {
+        setError(null); // 에러 메시지 초기화
+        setLoading(true);
+        setRouteInfo(null); 
+        setStartCoords(null); 
+
+        if (!startLocation.trim()) {
+            setError('출발지 주소를 입력해주세요.');
+            setLoading(false);
+            return;
+        }
+        if (!endCoords) {
+            setError('학교 위치 정보가 없습니다. 설정 페이지에서 학교 정보를 입력해주세요.');
+            setLoading(false);
+            return;
+        }
+
+        if (!isGoogleMapsLoaded) {
+            // 이 메시지는 버튼 클릭 시에만 나타나도록 이미 조치되었습니다.
+            // 버튼 자체도 isGoogleMapsLoaded에 따라 비활성화되므로, 이 경우는 발생 확률이 낮아집니다.
+            setError("Google Maps 서비스가 아직 로드되지 않았습니다. 잠시 기다려주세요.");
+            setLoading(false);
+            return;
+        }
+
+        const geocoder = new window.google.maps.Geocoder();
+        
+        try {
+            const geocodeResponse = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
+                geocoder.geocode({ address: startLocation }, (
+                    results: google.maps.GeocoderResult[] | null,
+                    status: google.maps.GeocoderStatus
+                ) => {
+                    if (status === window.google.maps.GeocoderStatus.OK && results) {
+                        resolve(results);
                     } else {
-                        setError(`API 요청 실패: ${err.response.status} ${err.response.data.msg || err.response.data.message || ''}`);
+                        reject(new Error(`Geocoding request failed: ${status}`));
                     }
-                } else if (err.request) {
-                    setError('네트워크 오류 또는 서버 응답이 없습니다.');
-                } else {
-                    setError('요청 설정 중 오류가 발생했습니다.');
-                }
+                });
+            });
+
+            if (geocodeResponse.length > 0) {
+                const originLocation = geocodeResponse[0].geometry.location;
+                setStartCoords({ y: originLocation.lat(), x: originLocation.lng() });
+                setError(null); 
             } else {
-                setError('알 수 없는 오류가 발생했습니다.');
+                setError('입력하신 주소를 찾을 수 없습니다. 다시 확인해주세요.');
+                console.error('Geocode request failed: ZERO_RESULTS');
             }
+
+        } catch (error: any) {
+            console.error('Geocoding 에러 상세:', error);
+            if (error.message.includes('REQUEST_DENIED')) {
+                setError('Google API 키 문제가 발생했습니다. 키 및 API 설정을 확인해주세요.');
+            } else if (error.message.includes('ZERO_RESULTS')) {
+                setError('입력하신 주소를 찾을 수 없습니다.');
+            } else if (error.message.includes('OVER_QUERY_LIMIT')) {
+                 setError('API 사용량이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+            } else {
+                setError(`주소 변환 실패: ${error.message}`);
+            }
+            setStartCoords(null);
         } finally {
             setLoading(false);
         }
     };
+
+    // 버튼 활성화/비활성화 조건
+    const isButtonDisabled = loading || !startLocation.trim() || !endCoords || !isGoogleMapsLoaded;
+    const buttonText = loading ? '경로 검색 중...' : 
+                       !endCoords ? '학교 위치 정보 필요' : // 학교 위치 정보가 없으면 버튼에 표시
+                       !isGoogleMapsLoaded ? '지도 로딩 중...' : '학교까지 길찾기';
+
 
     return (
         <Container>
             <Title>등교 경로 찾기</Title>
             <Input
                 type="text"
-                placeholder="출발지 주소 입력 (예: 서울특별시 강남구 역삼동)"
+                placeholder="출발지 주소 입력 (예: 서울특별시 강남구 테헤란로 123)"
                 value={startLocation}
                 onChange={(e) => setStartLocation(e.target.value)}
-                disabled={loading}
+                disabled={loading || !isGoogleMapsLoaded || !endCoords} // 학교 정보 없으면 입력 비활성화
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !isButtonDisabled) {
+                        searchRoute();
+                    }
+                }}
             />
-            <Button onClick={handleSearchRoute} disabled={loading || !startLocation}>
-                {loading ? '경로 검색 중...' : '학교까지 길찾기'}
+            <Button onClick={searchRoute} disabled={isButtonDisabled}>
+                {buttonText}
             </Button>
 
+            {/* 에러 메시지는 경로 검색 시에만 표시되도록 합니다. */}
             {error && <Message style={{ color: 'red' }}>{error}</Message>}
 
             {routeInfo && (
                 <ResultContainer>
-                    <ResultItem>예상 소요 시간: 약 {routeInfo.duration}분</ResultItem>
-                    <ResultItem>총 거리: 약 {routeInfo.distance}km</ResultItem>
-                    <ResultItem>자세한 경로 정보는 지도에서 확인하세요.</ResultItem>
+                    <ResultItem>📍 예상 소요 시간: 약 {routeInfo.duration}</ResultItem>
+                    <ResultItem>📏 총 거리: 약 {routeInfo.distance}</ResultItem>
+                    <ResultItem>🗺️ 자세한 경로 정보는 아래 지도에서 확인하세요.</ResultItem>
                 </ResultContainer>
             )}
 
-            {(startCoords && endCoords) && (
+            {/* MapDisplay는 isGoogleMapsLoaded가 true이고, 좌표가 있을 때만 렌더링합니다. */}
+            {isGoogleMapsLoaded && (startCoords || (userInfo?.schoolLatitude && userInfo?.schoolLongitude)) && (
                 <MapDisplay
                     startCoords={startCoords}
                     endCoords={endCoords}
-                    routePaths={routePaths}
+                    onRouteCalculated={(duration, distance) => {
+                        setRouteInfo({ duration: duration, distance: distance });
+                    }}
                 />
+            )}
+            {/* MapDisplay가 로드되지 않았다면 지도 로딩 메시지를 표시할 수 있습니다. 
+                이 메시지는 MapDisplay가 렌더링될 공간에 위치하도록 조정하는 것이 좋습니다.
+                현재는 MapDisplay가 렌더링되지 않을 때만 보이도록 했습니다. */}
+            {!isGoogleMapsLoaded && (
+                <Message>지도를 불러오는 중입니다. 잠시만 기다려주세요...</Message>
             )}
         </Container>
     );

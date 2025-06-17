@@ -16,10 +16,12 @@
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.1",
     "styled-components": "^6.1.18",
+    "vite-plugin-html": "^3.2.2",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@types/google.maps": "^3.58.1",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@types/styled-components": "^5.1.34",
