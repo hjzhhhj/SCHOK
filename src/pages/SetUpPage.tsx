@@ -63,8 +63,8 @@ const InputHome = styled.input`
 `
 
 const Select = styled.select`
-    width: 100%;
-    min-width: 120px;
+    width: 60%;
+    min-width: 130px;
     padding: 12px;
     font-size: 16px;
     border-radius: 8px;
