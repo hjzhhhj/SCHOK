@@ -93,6 +93,22 @@ const Button = styled.button`
     }
 `;
 
+const ResetButton = styled.button`
+    padding: 12px 20px;
+    background-color:#506482;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    &:hover {
+        background-color:#354154;
+    }
+`;
+
 const FormWrapper = styled.div<{ $isOpen: boolean }>
 `
     margin-left: 50px;
@@ -113,7 +129,13 @@ const FormWrapper = styled.div<{ $isOpen: boolean }>
     `}
 `;
 
-const ToggleButton = styled(Button)`
+const ButtonGroup = styled.div`
+    display: flex;
+    gap: 12px;
+    align-items: center;
+`;
+
+const ToggleButton = styled.button`
     background-color: transparent;
     color: #009fe3;
     padding: 8px 12px;
@@ -121,6 +143,10 @@ const ToggleButton = styled(Button)`
     font-weight: bold;
     flex-shrink: 0;
     margin-left: auto;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
     &:hover {
         background-color: #e6f7ff;
         color: #007bb6;
@@ -221,6 +247,50 @@ const SetupPage: React.FC = () => {
     }
   };
 
+  // 초기화 핸들러 - 모든 저장된 데이터를 삭제하고 새로고침
+  const handleReset = () => {
+    const confirmed = confirm(
+      "모든 저장된 정보가 삭제됩니다.\n" +
+      "- 사용자 정보 (학교, 학년, 반, 번호, 집 주소)\n" +
+      "- 저장된 출발지 주소\n" +
+      "- 급식 조회 날짜\n" +
+      "- 시간표 조회 날짜\n\n" +
+      "정말로 초기화하시겠습니까?"
+    );
+    
+    if (confirmed) {
+      try {
+        // 로컬 스토리지에서 모든 관련 데이터 삭제
+        localStorage.removeItem('user-storage'); // Zustand persist 데이터
+        localStorage.removeItem('startLocation'); // 출발지 주소
+        localStorage.removeItem('mealCurrentDate'); // 급식 조회 날짜
+        localStorage.removeItem('timetableCurrentDate'); // 시간표 조회 날짜
+        
+        // Zustand 스토어 초기화
+        setUserInfo(null as any); // userInfo를 null로 설정
+        
+        // 폼 상태 초기화
+        setForm({
+          school: "",
+          grade: undefined,
+          classNum: undefined,
+          studentNum: undefined,
+          homeAddress: "",
+        });
+        
+        setIsFormOpen(false); // 폼 닫기
+        
+        // 성공 메시지 표시 후 페이지 새로고침으로 완전 초기화
+        alert("모든 정보가 초기화되었습니다. 페이지를 새로고침합니다.");
+        window.location.reload();
+        
+      } catch (error) {
+        console.error("초기화 중 오류 발생:", error);
+        alert("초기화 중 오류가 발생했습니다. 페이지를 직접 새로고침해주세요.");
+      }
+    }
+  };
+
   return (
     <Container>
       <Title>⚙️ 설정 </Title>
@@ -280,8 +350,13 @@ const SetupPage: React.FC = () => {
         />
       </FormWrapper>
 
-      {/* 폼이 열렸을 때만 정보 저장 버튼 표시 */}
-      {isFormOpen && <Button onClick={handleSubmit}>저장</Button>}
+      {/* 폼이 열렸을 때만 버튼들 표시 */}
+      {isFormOpen && (
+        <ButtonGroup>
+          <Button onClick={handleSubmit}>저장</Button>
+          <ResetButton onClick={handleReset}>초기화</ResetButton>
+        </ButtonGroup>
+      )}
       
       {/* 폼 확장/축소 토글 버튼 */}
       <ToggleButton onClick={() => setIsFormOpen(!isFormOpen)}>
