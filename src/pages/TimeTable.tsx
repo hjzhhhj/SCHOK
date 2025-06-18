@@ -20,7 +20,7 @@ const Container = styled.div`
     border-radius: 16px;
     background-color: rgba(255, 255, 255, 0.95);
     box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
-    font-family: "Pretendard", "Noto Sans KR", sans-serif;
+    font-family: "Pretendard";
     display: flex;
     flex-direction: column;
     height: 600px; 
@@ -38,6 +38,8 @@ const Title = styled.h2`
     font-size: 24px;
     color: #007acc;
     margin-bottom: 20px;
+    font-family: "Jua";
+    font-weight: 400;
 `;
 
 const DateDisplay = styled.div`
@@ -45,7 +47,8 @@ const DateDisplay = styled.div`
     font-size: 18px;
     color: #007acc;
     margin-bottom: 15px;
-    font-weight: bold;
+    font-family: "Jua";
+    font-weight: 400;
 `;
 
 const List = styled.ul`
@@ -266,7 +269,7 @@ const Timetable: React.FC = () => {
         return (
             <Container>
                 <ContentArea>
-                    <Title>☁️ 이날의 시간표 ☁️</Title>
+                    <Title>☁️ 오늘의 시간표 ☁️</Title>
                     <Message>사용자 정보를 먼저 입력해주세요.</Message>
                 </ContentArea>
                 <ButtonContainer>
@@ -281,7 +284,7 @@ const Timetable: React.FC = () => {
     return (
         <Container>
             <ContentArea>
-                <Title>☁️ 이날의 시간표 ☁️</Title>
+                <Title>☁️ 오늘의 시간표 ☁️</Title>
                 <DateDisplay>{displayDate(currentDate)}</DateDisplay>
 
                 {loading ? ( // 로딩 중일 때 메시지

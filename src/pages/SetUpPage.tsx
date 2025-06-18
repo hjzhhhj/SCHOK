@@ -27,16 +27,14 @@ const Container = styled.div`
 const Title = styled.h1`
     padding-left: 12px;
     font-size: 22px;
-    font-weight: bold;
+    font-family: "Jua";
+    font-weight: 400;
     color: #007acc;
-    white-space: nowrap;
-    flex-shrink: 0;
-    margin-right: 10px;
 `;
 
 const Input = styled.input`
-    width: 100%;
-    min-width: 170px;
+    width: 50%;
+    min-width: 120px;
     padding: 12px;
     font-size: 16px;
     border-radius: 8px;
@@ -49,9 +47,24 @@ const Input = styled.input`
     }
 `;
 
+const InputHome = styled.input`
+    width: 100%;
+    min-width: 200px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #a0d9ff;
+    background-color: #ffffff;
+    &:focus {
+        outline: none;
+        border-color: #007acc;
+        box-shadow: 0 0 0 3px rgba(0, 128, 255, 0.2);
+    }
+`
+
 const Select = styled.select`
     width: 100%;
-    min-width: 100px;
+    min-width: 120px;
     padding: 12px;
     font-size: 16px;
     border-radius: 8px;
@@ -80,13 +93,15 @@ const Button = styled.button`
     }
 `;
 
-const FormWrapper = styled.div<{ $isOpen: boolean }>`
+const FormWrapper = styled.div<{ $isOpen: boolean }>
+`
+    margin-left: 50px;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 16px;
     overflow: hidden;
-    max-width: ${props => (props.$isOpen ? '900px' : '0px')};
+    max-width: ${props => (props.$isOpen ? 'fit-content' : '0px')};
     opacity: ${props => (props.$isOpen ? '1' : '0')};
     transition: max-width 0.7s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.5s ease-in-out;
     flex-wrap: nowrap;
@@ -256,7 +271,7 @@ const SetupPage: React.FC = () => {
           required
           min="1"
         />
-        <Input
+        <InputHome
           name="homeAddress"
           type="text"
           placeholder="집 도로명 주소 (선택 사항)"

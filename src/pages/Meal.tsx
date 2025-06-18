@@ -39,6 +39,8 @@ const Title = styled.h2`
     font-size: 24px;
     color: #007acc;
     margin-bottom: 20px;
+    font-family: "Jua";
+    font-weight: 400;
 `;
 
 const DateDisplay = styled.div`
@@ -46,7 +48,8 @@ const DateDisplay = styled.div`
     font-size: 18px;
     color: #007acc;
     margin-bottom: 15px;
-    font-weight: bold;
+    font-family: "Jua";
+    font-weight: 400;
 `;
 
 const List = styled.ul`
@@ -258,7 +261,7 @@ const Meal: React.FC = () => {
         return (
             <Container>
                 <ContentArea>
-                    <Title>☁️ 이날의 급식 ☁️</Title>
+                    <Title>☁️ 오늘의 급식 ☁️</Title>
                     <Message>사용자 정보를 먼저 입력해주세요.</Message>
                 </ContentArea>
                 <ButtonContainer>
@@ -272,7 +275,7 @@ const Meal: React.FC = () => {
     return (
         <Container>
             <ContentArea>
-                <Title>☁️ 이날의 급식 ☁️</Title>
+                <Title>☁️ 오늘의 급식 ☁️</Title>
                 <DateDisplay>{displayDate(currentDate)}</DateDisplay>
 
                 {loading ? ( // 로딩 중일 때

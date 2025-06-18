@@ -26,10 +26,12 @@ const Title = styled.h2`
     font-size: 24px;
     color: #007acc;
     margin-bottom: 10px;
+    font-family: "Jua";
+    font-weight: 400;
 `;
 
 const Input = styled.input`
-    padding: 10px;
+    padding: 14px;
     font-size: 16px;
     border-radius: 8px;
     border: 1px solid #a0d9ff;
@@ -84,7 +86,7 @@ const ResultItem = styled.p`
 
 const SuggestionList = styled.ul`
     position: absolute;
-    top: calc(24px + 24px + 10px + 40px + 15px);
+    top: calc(24px + 24px + 10px + 80px + 15px);
     left: 24px;
     right: 24px;
     background-color: white;

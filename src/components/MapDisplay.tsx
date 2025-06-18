@@ -11,7 +11,7 @@ declare global {
 // 지도 컨테이너 스타일 정의
 const MapContainer = styled.div`
   width: auto;
-  height: 400px;
+  height: 300px;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 128, 255, 0.1);
 `;
