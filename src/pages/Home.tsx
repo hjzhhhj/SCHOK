@@ -222,7 +222,7 @@ const Home: React.FC = () => {
 
             // 길찾기 결과 처리
             if (routeResponse.data.routes && routeResponse.data.routes.length > 0) {
-                const route = routeResponse.data.routes[0]; // 첫 번째 추천 경로 사용
+                const route = routeResponse.data.routes[0]; // 첫 번째 추천 경로 사용ㅌ
                 const durationMinutes = Math.ceil(route.summary.duration / 60); // 소요 시간을 분 단위로 변환 (올림)
                 const distanceKm = (route.summary.distance / 1000).toFixed(1); // 거리를 km 단위로 변환 (소수점 첫째 자리)
                 setRouteInfo({ duration: durationMinutes, distance: parseFloat(distanceKm) });
